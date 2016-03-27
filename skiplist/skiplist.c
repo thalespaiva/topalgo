@@ -17,6 +17,7 @@ typedef struct skiplist_t {
 
 void skiplist_init(SkipList *skiplist, int max_levels);
 void skiplist_insert_data(SkipList *skiplist, int data);
+void skiplist_print(SkipList *skiplist);
 int skiplist_get_random_n_level(SkipList *skiplist);
 
 
@@ -46,6 +47,7 @@ int main(int argc, char *argv[]) {
         skiplist_insert_data(&skiplist, data);
 
     }
+    skiplist_print(&skiplist);
     return 0;
 }
 
@@ -108,4 +110,34 @@ void skiplist_insert_data(SkipList *skiplist, int data) {
 int skiplist_get_random_n_level(SkipList *skiplist) {
     /* TODO: discard those out of the non-skew range */
     return 1 + rand() % (skiplist->max_levels);
+}
+
+void skiplist_print(SkipList *skiplist) {
+    Node *tmp_node;
+    Node **nodes_addresses;
+    int i, j, n;
+
+    for (tmp_node = skiplist->levels[0], n = 0; tmp_node != NULL;
+         tmp_node = tmp_node->levels[0], n++);
+
+    nodes_addresses = malloc(n*sizeof(*nodes_addresses));
+
+    for (tmp_node = skiplist->levels[0], i = 0; tmp_node != NULL;
+         tmp_node = tmp_node->levels[0], i++)
+        nodes_addresses[i] = tmp_node;
+
+    printf("[+] dump skiplist: \n");
+    for (i = 0; i < skiplist->max_levels; i++) {
+        tmp_node = skiplist->levels[i];
+        for (j = 0; j < n; j++) {
+            if (tmp_node != NULL && tmp_node == nodes_addresses[j]) {
+                printf("|%2d|-", tmp_node->data);
+                tmp_node = tmp_node->levels[i];
+            }
+            else {
+                printf("-----");
+            }
+        }
+        printf("Null\n");
+    }
 }
