@@ -1,3 +1,22 @@
+/*  Author  : Thales Paiva
+ *  Contact : <first name + last name at googlemail com>
+ *
+ *  Compile : gcc -Wall -Werror -ansi -o skp skiplist.c
+ *
+ *  Usage   : Usage: ./skp <n> <max_levels> [seed]
+ *
+ *  Example : ./skp 10 7 0
+ *  Output  : Values: 3, 7, 3, 6, 9, 2, 0, 3, 0, 2
+ *            | 0|-| 0|-| 2|-| 2|-| 3|-| 3|-| 3|-| 6|-| 7|-| 9|-Null
+ *            | 0|-| 0|-| 2|-| 2|------| 3|-| 3|-| 6|-| 7|-| 9|-Null
+ *            | 0|------| 2|-| 2|------| 3|-| 3|-| 6|-| 7|-| 9|-Null
+ *            | 0|-----------| 2|------| 3|-| 3|------| 7|-| 9|-Null
+ *            | 0|-----------| 2|------| 3|-----------| 7|------Null
+ *            ---------------| 2|---------------------| 7|------Null
+ *            --------------------------------------------------Null
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
