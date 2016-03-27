@@ -36,7 +36,7 @@ typedef struct skiplist_t {
 
 void skiplist_init(SkipList *skiplist, int max_levels);
 void skiplist_insert_data(SkipList *skiplist, int data);
-void skiplist_print(SkipList *skiplist);
+void skiplist_horizontal_print(SkipList *skiplist);
 int skiplist_get_random_n_level(SkipList *skiplist);
 
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         skiplist_insert_data(&skiplist, data);
 
     }
-    skiplist_print(&skiplist);
+    skiplist_horizontal_print(&skiplist);
     return 0;
 }
 
@@ -131,7 +131,9 @@ int skiplist_get_random_n_level(SkipList *skiplist) {
     return 1 + rand() % (skiplist->max_levels);
 }
 
-void skiplist_print(SkipList *skiplist) {
+
+/*TODO vertical print*/
+void skiplist_horizontal_print(SkipList *skiplist) {
     Node *tmp_node;
     Node **nodes_addresses;
     int i, j, n;
