@@ -1,0 +1,457 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\usepackage[brazilian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amsthm,mathtools} % Math packages
+\usepackage{xspace}
+\usepackage{indentfirst}
+\usepackage{placeins}
+
+
+\usepackage{enumitem}
+\setenumerate{noitemsep}
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+
+\newcommand{\snode}[2]{\node(#1)[item]{\ensuremath{#2}}}
+\newcommand{\nodelabel}[1]{\node[label]{\ensuremath{S_#1}}}
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+%\fancyhead{}
+\fancyfoot[L]{}                      % Empty left footer
+\fancyfoot[C]{}                      % Empty center footer
+\fancyfoot[R]{\thepage}              % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt}   % Remove header underlines
+\renewcommand{\footrulewidth}{0pt}   % Remove footer underlines
+\setlength{\headheight}{13.6pt}      % Customize the height of the header
+
+
+\bibliographystyle{apalike}
+%\bibliographystyle{alpha}
+
+
+\newtheorem{theorem}{Teorema}
+\newtheorem{definition}{Definição}
+\newtheorem{property}{Propriedade}
+\newtheorem{proposition}{Proposição}
+\newtheorem{lemma}[theorem]{Lema}
+\newtheorem{corollary}[theorem]{Corolário}
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\numberwithin{definition}{section}
+\numberwithin{theorem}{section}
+\numberwithin{property}{section}
+\numberwithin{proposition}{section}
+
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % horizontal rule command
+
+\title{	
+\normalfont \normalsize 
+\textsc{DCC-IME-USP Tópicos de Análise de Algoritmos \\ Professor Fernando Mário de Oliveira Filho} \\ [25pt]
+\huge Skip Lists% The assignment title
+%\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+\newcommand{\cP}{\ensuremath{\mathcal{P}}}
+\newcommand{\cNP}{\ensuremath{\mathcal{NP}}}
+
+
+\newcommand{\cO}{\ensuremath{\mathcal{O}}}
+\newcommand{\Ps}{\ensuremath{\mathcal{P}_S}}
+
+\newcommand{\SL}{\textit{Skip List}\xpace}
+\newcommand{\SLs}{\textit{Skip Lists}\space}
+\newcommand{\Sl}{\textit{Skip list}\xspace}
+\newcommand{\sls}{\textit{skip lists}\xspace}
+\newcommand{\skl}{\textit{skip list}\xspace}
+\renewcommand{\sl}{\textit{skip list}\xspace}
+
+\renewcommand{\bar}[1]{\overline{#1}}
+
+\newcommand{\Exp}{\ensuremath{{\mathbb{E}}}\xspace}
+
+
+\author{Gláucio Alves de Oliveira \\ Thales A. B. Paiva 
+        \\ \small \{glaucioaorj, thalespaiva\}@gmail.com}
+\date{\normalsize\today}
+
+
+\begin{document}
+
+\maketitle % Print the title
+%\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
+
+\begin{abstract} \noindent
+
+Resumimos os principais resultados sobre Skip Lists aleatorizadas e determinísticas. 
+Skip Lists foram introduzidas por W. Pugh como alternativa às árvores balanceadas. 
+Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementação.
+
+\end{abstract}
+
+\tableofcontents
+
+\pagebreak
+\section{\SLs}
+\FloatBarrier
+
+Introduzidas por Pugh em \cite{pugh}, \sls são uma extensão natural de listas ligadas ordenadas. 
+Ambas podem ser usadas para manter um conjunto ordenado de chaves, e eventualmente seus valores associados.
+Mostramos nas próximas seções que operações de busca, inserção, e remoção em \sls são feitas em $\cO(\log n)$, 
+como para árvores balanceadas de busca. Isso faz com que a escolha entre usar \sls ou árvores balanceadas numa
+determinada aplicação seja baseada nas dificuldades de implementação, no uso de memória, e no tamanho das 
+constantes multiplicativas dos custos de operação. 
+
+Uma \sl é determinada por um conjunto de nós, que têm chave e dados associados, e apontadores de nós de chave 
+menor a nós de chave maior.
+Enquanto nas listas ligadas, um nó aponta a um só outro nó, em \sls, um nó pode apontar a vários 
+outros nós de chave maior. 
+O número máximo de nós a que um nó pode apontar é definido aleatoriamente quando este é inserido na lista, e 
+é chamado de nível do nó. Na definição do nível um nó, usa-se um algoritmo que garante que, em média, a proporção 
+de nós com ao menos $i + 1$ níveis em relação àqueles com ao menos $i$ níveis, seja de $p$, uma probabilidade
+fixada na criação da \sl.
+
+A interface de operações básicas permitidas sobre uma lista ligada é a mesma que a interface
+para árvores de busca, com a adição da probabilidade $p$ passada em sua inicialização:
+
+\begin{itemize}
+  \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
+  \item \textsc{Insert}($S$, $k$, $d$): Insere um nó de chave $k$, e conjunto de dados
+                                                 $d$, em $S$.
+  \item \textsc{Remove}($S$, $k$): Remove o nó de chave $k$ de $S$.
+  \item \textsc{Search}($S$, $k$): Busca o nó de chave $k$ em $S$ e o devolve.
+\end{itemize}
+
+Dentre essas operações, a mais importante é a busca. Isso pois, uma vez que o algoritmo de busca é entendido,
+as outras funções são facilmente descritas.
+
+
+A Figura~\ref{fig:skiplist} mostra um exemplo de \skl. 
+O nó de chave $-\infty$ indica o começo da lista, e o nó de chave $+\infty$ indica o final.
+Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$, forma uma lista ligada ordenada.
+
+
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/    
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=6mm,minimum width=10mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=6mm}
+      ]
+      
+
+      % The nodes of the skip list are drawn in a matrix
+      % \\ delimits the rows while & delimits the columns
+      \matrix[row sep=3mm, column sep=5mm]{
+        % Row 3: -infty ... +infty
+        \nodelabel{3}; & \snode{3a}{-\infty}; & & & & & & & \snode{3h}{+\infty};\\
+
+        % Row 2: -infty ... 6 ... 24 ... +infty
+        \nodelabel{2}; & \snode{2a}{-\infty}; & & \snode{2c}{6}; & & \snode{2e}{24}; & & & \snode{2h}{+\infty};\\
+
+        % Row 1: -infty ... 6 16 24 31 ... +infty
+        \nodelabel{1}; & \snode{1a}{-\infty}; & & \snode{1c}{6}; & \snode{1d}{16}; & \snode{1e}{24}; & \snode{1f}{31}; & & \snode{1h}{+\infty};\\
+
+        % Row 0: -infty 5 6 16 24 31 39 +infty
+        \nodelabel{0}; & \snode{0a}{-\infty}; & \snode{0b}{5}; & \snode{0c}{6}; & \snode{0d}{16}; & \snode{0e}{24}; & \snode{0f}{31}; & \snode{0g}{39}; & \snode{0h}{+\infty};\\
+      };
+
+      % Start chaining the nodes together
+      {
+        % Horizontal chains
+        % Specify a starting node (by ID), and join to other nodes (by going "through" them in an unbroken line)
+        % Eg row 2: Start at 2a, join 2e, join 2h, join 2i
+        [start chain] \chainin(0a); \chainin(0b) [join=by {->}]; \chainin(0c) [join=by {->}]; \chainin(0d) [join=by {->}]; \chainin(0e) [join=by {->}]; \chainin(0f) [join=by {->}]; \chainin(0g) [join=by {->}]; \chainin(0h) [join=by {->}];
+        [start chain] \chainin(1a); \chainin(1c) [join=by {->}]; \chainin(1d) [join=by {->}]; \chainin(1e) [join=by {->}]; \chainin(1f) [join=by {->}]; \chainin(1h) [join=by {->}];
+        [start chain] \chainin(2a); \chainin(2c) [join=by {->}]; \chainin(2e) [join=by {->}]; \chainin(2h) [join=by {->}];
+        [start chain] \chainin(3a); \chainin(3h) [join=by {->}];
+      }
+      {
+        % Vertical chains
+        % Need to be separate chains from the horizontal ones
+        [start chain] \chainin(0a); \chainin(1a) [join]; \chainin(2a) [join]; \chainin(3a) [join];
+        [start chain] \chainin(0c); \chainin(1c) [join]; \chainin(2c) [join];
+        [start chain] \chainin(0d); \chainin(1d) [join];
+        [start chain] \chainin(0e); \chainin(1e) [join]; \chainin(2e) [join];
+        [start chain] \chainin(0f); \chainin(1f) [join];
+        [start chain] \chainin(0h); \chainin(1h) [join]; \chainin(2h) [join]; \chainin(3h) [join];
+      }
+    \end{tikzpicture}
+  \caption{Exemplo de skip list.}
+  \label{fig:skiplist}
+\end{figure}
+
+Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar alguns fatos interessantes.
+A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Mostraremos
+como implementar a definição abaixo na Seção~\ref{sec:estrut}.
+
+\begin{definition}
+Uma \textbf{\emph{Skip List}} de elementos $c_1, c_2, \ldots, c_n$, em ordem crescente, de um conjunto totalmente 
+ordenado, é uma dupla $\left\langle S, p \right\rangle$ tal que:
+
+\begin{itemize}
+
+\item $S = \{S_0, S_1, S_2, \ldots \}$.
+
+\item $S_0 = \{c_1, c_2, \ldots, c_n\}.$
+
+\item Cada $S_i$, para $i \geq 1$, é construído de forma que:
+  \begin{enumerate}[noitemsep]
+    \item $\Pr(c \in S_i | c \in S_{i-1}) = p$.
+    \item  $\Pr(c \in S_i | c \notin S_{i-1}) = 0$.
+  \end{enumerate}
+
+\end{itemize}
+
+\end{definition}
+
+
+
+\begin{definition}
+
+O nível de um elemento $c$ de uma \sl é o número de conjuntos de $S$ a que $c$ pertence.
+
+
+\end{definition}
+
+
+\section{Estruturas e Algoritmos} \label{sec:estrut}
+
+
+\subsection{Estruturas de Dados}
+
+Como uma \skl é composta por nós, primeiro vamos definir a estrutura \verb|Node|. Um nó \verb|node| 
+tem os seguintes atributos:
+
+\begin{itemize}[noitemsep]
+  \item \verb|node.key| : é a chave do nó, que é única para cada nó de uma \skl.
+  \item \verb|node.level| : é o número de níveis atribuído ao nó em sua criação.
+  \item \verb|node.next[i]| : é o nó para que \verb|node| aponta em seu \verb|i|-ésimo nível.
+  \item \verb|node.data| : os dados associadas ao nó, que são irrelevantes neste trabalho.
+\end{itemize}
+
+E agora podemos definir a estrutura \verb|SkipList|. Uma instância \verb|skiplist| que representa a 
+\skl $\langle S, p \rangle$ tem os seguintes atributos:
+
+\begin{itemize}[noitemsep]
+  \item \verb|skiplist.p| : é a probabilidade $p$.
+  \item \verb|skiplist.level| : é o nível do maior nó, e pode variar a cada inserção.
+  \item \verb|skiplist.next[i]| : é o primeiro nó do \verb|i|-ésimo nível da \skl.
+\end{itemize}
+
+
+\subsection{Algoritmos}
+
+\pagebreak
+\section{Análise Assintótica do Custo Médio}
+
+\begin{definition}
+
+O \textbf{custo de busca} de um elemento de uma \sl é o número de comparações feitas durante a busca por ele.
+
+\end{definition}
+
+\begin{definition}
+
+Um \textbf{caminho} induzido por uma busca é uma sequência $(o_1, o_2, \ldots, o_m)$ 
+em que cada passo $o_i$ pertence a $\{\rightarrow, \downarrow\}$, tal que:
+
+\begin{itemize}[noitemsep]
+  \item No início da busca, a sequência é vazia.
+  \item $\rightarrow$ é adicionado à sequência a cada novo nó visitado na busca.
+  \item $\downarrow$ é adicionado à sequência a cada descida de nível na busca.
+\end{itemize}
+
+\end{definition}
+
+\begin{lemma} \label{lemma:custo_busca_caminho}
+O custo de busca de um elemento é igual ao tamanho do caminho de busca por esse elemento.
+\end{lemma}
+
+\begin{proof}
+Cada $\rightarrow$ é adicionado pela chamada \verb|x = x.next[i]|, que ocorre quando a condição
+\verb|x.next[i].key < searched_key| é verificada. 
+Cada $\downarrow$ é adicionado quando ocorre quando a condição \verb|x.next[i].key < searched_key| 
+não é verificada.
+
+Logo, cada comparação adiciona um passo ao caminho de busca, e não há outro modo de adicionar um passo ao
+caminho de busca.
+\end{proof}
+
+Queremos mostrar que o custo médio de busca em \sls é $\cO(\log n)$. Pelo lema~\ref{lemma:custo_busca_caminho},
+podemos simplificar a demonstração dividindo a busca nas componentes vertical e horizontal.
+
+\begin{lemma} \label{lemma:downarrow}
+
+O número esperado de passos $\downarrow$ em qualquer caminho de busca é $\cO(\log n)$.
+
+\end{lemma}
+
+\begin{proof}
+
+Note que toda busca desce até o nível 1 da \skl, então o número esperado de passos é o número de níveis,
+ou altura, da \skl. Seja $H$ a variável aleatória que representa a altura de uma \skl $L$. E sejam 
+$H_1, H_2, \ldots, H_n$ as variáveis aleatórias que representam as alturas de $c_1, c_2, \ldots, c_n$, 
+respectivamente.
+
+Como $H = \max \{H_i : i = 1, \ldots, n \}$, é claro que
+$$
+\Pr(H \geq k) \leq \sum_{i=1}^n \Pr(H_i \geq k).
+$$
+
+As $H_i$ seguem a mesma distribuição e essas variáveis são tais que $ \Pr(H_i \geq k) = p^k$. Então
+$$
+\Pr(H \geq k) \leq np^k.
+$$
+
+Como a $H$ é discreta e toma valores positivos
+\begin{align*}
+\Exp(H) &= \sum_{k = 0}^{\infty} \Pr(H \geq k)  \\
+        &= \sum_{k = 0}^{\lceil 2 \log_{1/p} n \rceil - 1} \Pr(H \geq k) +
+        \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} \Pr(H \geq k).
+\end{align*}
+
+Vamos analisar cada parcela calculada. Para a primeira, temos
+\begin{align*}
+\sum_{k = 0}^{\lceil 2 \log_{1/p} n \rceil - 1} \Pr(H \geq k) &\leq 
+  \sum_{k = 0}^{\lceil 2 \log_{1/p} n \rceil - 1} 1 \\
+&\leq \lceil 2 \log_{1/p} n \rceil.
+\end{align*}
+E para a segunda parcela, temos
+\begin{align*}
+\sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} \Pr(H \geq k) 
+   &\leq \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} np^k \\
+   &= n \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} p^k \\
+   &= n p^{\lceil 2 \log_{1/p} n \rceil} \sum_{k = 0}^{\infty} p^k \\
+   &= n p^{\lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &= n \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &= n \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &\leq n n^{-2} \frac{1}{1 - p} \\
+   &= \frac{1}{n(1 - p)}.
+\end{align*}
+
+Somando os resultados
+\begin{align*}
+\Exp(H) &\leq \lceil 2 \log_{1/p} n \rceil + \frac{1}{n(1 - p)}.
+\end{align*}
+
+Portanto
+$$
+\Exp(H) = \cO(\log n).
+$$
+\end{proof}
+
+
+\begin{lemma} \label{lemma:rightarrow}
+
+O número esperado de passos $\rightarrow$ em qualquer caminho de busca é $\cO(\log n)$.
+
+\end{lemma}
+
+\begin{proof}
+Considere que estamos percorrendo ao contrário um caminho de busca qualquer e nos encontramos num nível qualquer 
+de um nó qualquer. Temos duas opções:
+\begin{enumerate}[noitemsep]
+  \item Se possível, subir mais um nível. 
+  \item Se não, ir para a esquerda.
+\end{enumerate}
+
+Note que, se for possível subir, o caminho invertido deve subir, caso contrário, não estamos percorrendo um 
+caminho válido. Isso pois qualquer caminho válido encontra sempre o nível mais alto do nó buscado.
+
+A probabilidade de ser possível subir mais um nível neste nó é justamente a probabilidade de haver ao menos
+$i + 1$ níveis no nó dado que há ao menos $i$ níveis, ou seja, $p$. Logo a probabilidade de termos de andar à
+esquerda é $1 - p$.
+
+Seja $R_i$ a variável aleatória que conta o número de passos $\rightarrow$ feitos no nível $i$, num 
+caminho de busca. Ou seja, $R_i$ conta o número de observações \textbf{antes} de um evento com probabilidade 
+$p$ ser observado. Essa interpretação mostra que $R_i \sim \text{Geom}(p)$. 
+
+A esperança de $R_i$ é:
+\begin{align*}
+\Exp(R_i)
+  &= \sum_{k = 1}^{\infty} k \Pr(R_i = k)= \sum_{k = 1}^{\infty} k (1 - p)^{k} p 
+\end{align*}
+
+Fazendo  $q = 1 - p$, temos
+\begin{align*}
+\Exp(R_i)
+  &= \sum_{k = 1}^{\infty} k q^{k} (1 - q) 
+    = \sum_{k = 1}^{\infty} \left( k q^{k}  - k q^{k+1} \right)  \\
+  &= \sum_{k = 0}^{\infty} \left( (k+1) q^{k+1}  - k q^{k+1} \right) \\
+  &= \sum_{k = 0}^{\infty} q^{k+1} 
+    = \sum_{k = 1}^{\infty} q^{k}  
+    = \frac{q}{1-q} \\
+  &= \frac{1 - p}{p}. \\
+\end{align*}
+
+E assim, para todo nível $i$, $\Exp(R_i) = \cO(1)$.
+
+Seja $R$ a variável aleatória que conta o número de passos $\rightarrow$ no caminho, 
+e seja $H$ a variável aleatória que representa a altura da \skl. Então:
+$$
+R = \sum_i^H R_i.
+$$
+
+E temos que
+\begin{align*}
+\Exp(R) = \Exp \left( \sum_{i=1}^H R_i \right) = \sum_{i=1}^{\Exp(H)} \Exp(R_i)
+ =  \Exp(H) \Exp(R_i) = \cO(\log n) \cO(1).
+\end{align*}
+
+Portanto, $\Exp(R) = \cO(\log n).$
+
+\end{proof}
+
+
+
+\begin{theorem}
+O custo médio de busca em \sls é $\cO(\log n)$. 
+\end{theorem}
+
+\begin{proof}
+É corolário dos lemas \ref{lemma:downarrow} e \ref{lemma:rightarrow}. Como num caminho o número de passos
+num caminho é a soma do número esperado de passos $\downarrow$ com o de passos $\rightarrow$. Como ambos são
+$\cO(\log n)$, a soma também é $\cO(\log n)$.
+\end{proof}
+
+
+
+
+
+%----------------------------------------------------------------------------------------
+\bibliography{biblio}{}
+\end{document}
