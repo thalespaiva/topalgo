@@ -93,7 +93,7 @@ Node *skiplist_search(SkipList *skiplist, int key) {
 
     tmp_node = skiplist->header;
     for (i = skiplist->height - 1; i >= 0; i--) {
-        while (tmp_node->levels[i] != NULL && tmp_node->levels[i]->key < key)
+        while (tmp_node->levels[i]->key < key)
             tmp_node = tmp_node->levels[i];
     }
 
@@ -120,8 +120,6 @@ void skiplist_init(SkipList *skiplist, double p) {
 }
 
 void node_init(Node *node, int key, int height) {
-    int i;
-
     node->key = key;
     node->height = height;
 
@@ -130,8 +128,6 @@ void node_init(Node *node, int key, int height) {
         printf("[-] malloc error for node->levels\n");
         exit(1);
     }
-    for (i = 0; i < height; i++)
-        node->levels[i] = NULL;
 }
 
 void skiplist_insert(SkipList *skiplist, int key) {
@@ -145,7 +141,7 @@ void skiplist_insert(SkipList *skiplist, int key) {
 
     tmp_node = skiplist->header;
     for (i = skiplist->height - 1; i >= 0; i--) {
-        while (tmp_node->levels[i] != NULL && tmp_node->levels[i]->key < key)
+        while (tmp_node->levels[i]->key < key)
             tmp_node = tmp_node->levels[i];
         pointing_key_node[i] = tmp_node;
     }
@@ -155,8 +151,10 @@ void skiplist_insert(SkipList *skiplist, int key) {
         return;
 
     if (key_node->height > skiplist->height) {
-        for (i = skiplist->height; i < key_node->height; i++)
+        for (i = skiplist->height; i < key_node->height; i++) {
             pointing_key_node[i] = skiplist->header;
+            skiplist->header->levels[i] = skiplist->end;
+        }
         skiplist->height = key_node->height;
     }
 
