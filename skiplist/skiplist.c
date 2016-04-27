@@ -44,6 +44,7 @@ typedef struct skiplist_t {
 void node_init(Node *node, int key, int height);
 void skiplist_init(SkipList *skiplist, double p);
 void skiplist_insert(SkipList *skiplist, int key);
+void skiplist_remove(SkipList *skiplist, int key);
 Node *skiplist_search(SkipList *skiplist, int key);
 void skiplist_horizontal_print(SkipList *skiplist);
 void skiplist_vertical_print(SkipList *skiplist);
@@ -73,6 +74,7 @@ int main(int argc, char *argv[]) {
 
     printf("[+] dump key: \n");
     printf("    (i    , key)\n");
+    skiplist_insert(&skiplist, SKIPLIST_MAX_KEY/2);
     for (i = 0; i < n; i++) {
         key = rand() % SKIPLIST_MAX_KEY;
         printf("    (%-4d , %4d)\n", i, key);
@@ -84,6 +86,8 @@ int main(int argc, char *argv[]) {
         printf("[+] key %d found.\n", node->key);
     else
         printf("[-] Key 15 not found.\n");
+    skiplist_remove(&skiplist, SKIPLIST_MAX_KEY/2);
+    skiplist_vertical_print(&skiplist);
     return 0;
 }
 
@@ -130,6 +134,10 @@ void node_init(Node *node, int key, int height) {
     }
 }
 
+void free_node(Node *node) {
+    free(node->levels);
+    node->levels = NULL;
+}
 void skiplist_insert(SkipList *skiplist, int key) {
     int i;
     Node *key_node;
@@ -162,6 +170,30 @@ void skiplist_insert(SkipList *skiplist, int key) {
         key_node->levels[i] = pointing_key_node[i]->levels[i];
         pointing_key_node[i]->levels[i] = key_node;
     }
+}
+
+void skiplist_remove(SkipList *skiplist, int key) {
+    int i;
+    Node *tmp_node;
+    Node *pointing_key_node[SKIPLIST_MAX_HEIGHT];
+
+    tmp_node = skiplist->header;
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+        pointing_key_node[i] = tmp_node;
+    }
+
+    tmp_node = tmp_node->levels[0];
+    if (tmp_node->key != key) /* Não há um elemento com chave key. */
+        return;
+
+    for (i = 0; i < skiplist->height; i++) {
+        if (pointing_key_node[i]->levels[i] != tmp_node)
+            break;
+        pointing_key_node[i]->levels[i] = tmp_node->levels[i];
+    }
+    free_node(tmp_node);
 }
 
 int skiplist_get_random_node_height(SkipList *skiplist) {
