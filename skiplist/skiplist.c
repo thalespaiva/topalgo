@@ -44,6 +44,7 @@ typedef struct skiplist_t {
 void node_init(Node *node, int key, int height);
 void skiplist_init(SkipList *skiplist, double p);
 void skiplist_insert(SkipList *skiplist, int key);
+Node *skiplist_search(SkipList *skiplist, int key);
 void skiplist_horizontal_print(SkipList *skiplist);
 void skiplist_vertical_print(SkipList *skiplist);
 int skiplist_get_random_node_height(SkipList *skiplist);
@@ -54,6 +55,7 @@ int main(int argc, char *argv[]) {
     double p;
 
     SkipList skiplist;
+    Node *node;
 
     if (argc < 3 || argc > 4) {
         printf("Usage: %s <n> <p> [seed]\n", argv[0]);
@@ -77,8 +79,28 @@ int main(int argc, char *argv[]) {
         skiplist_insert(&skiplist, key);
     }
     skiplist_vertical_print(&skiplist);
-
+    node = skiplist_search(&skiplist, 15);
+    if (node)
+        printf("[+] key %d found.\n", node->key);
+    else
+        printf("[-] Key 15 not found.\n");
     return 0;
+}
+
+Node *skiplist_search(SkipList *skiplist, int key) {
+    int i;
+    Node *tmp_node;
+
+    tmp_node = skiplist->header;
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i] != NULL && tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+    }
+
+    if (tmp_node->levels[0]->key == key)
+        return tmp_node->levels[0];
+
+    return NULL;
 }
 
 void skiplist_init(SkipList *skiplist, double p) {
