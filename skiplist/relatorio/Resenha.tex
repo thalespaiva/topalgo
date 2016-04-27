@@ -15,7 +15,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %----------------------------------------------------------------------------------------
-%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
 \documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
@@ -26,6 +26,8 @@
 \usepackage{xspace}
 \usepackage{indentfirst}
 \usepackage{placeins}
+
+\usepackage{url}
 
 \usepackage{listings}
 \renewcommand\lstlistingname{Algoritmo}
@@ -53,6 +55,8 @@
 \usetikzlibrary{chains}
 
 \newcommand{\snode}[2]{\node(#1)[item]{\ensuremath{#2}}}
+\newcommand{\inode}[2]{\node(#1)[item, dashed]{\ensuremath{#2}}}
+\newcommand{\gnode}[2]{\node(#1)[item, fill=gray]{\ensuremath{#2}}}
 \newcommand{\nodelabel}[1]{\node[label]{\ensuremath{S_#1}}}
 
 \usepackage{fancyhdr}
@@ -87,8 +91,8 @@
 
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % horizontal rule command
 
-\title{	
-\normalfont \normalsize 
+\title{ 
+\normalfont \small 
 \textsc{DCC-IME-USP Tópicos de Análise de Algoritmos \\ Professor Fernando Mário de Oliveira Filho} \\ [25pt]
 \huge Skip Lists% The assignment title
 %\horrule{1pt} \\[0.5cm] % Thick bottom horizontal rule
@@ -99,8 +103,8 @@
 \newcommand{\cO}{\ensuremath{\mathcal{O}}}
 \newcommand{\Ps}{\ensuremath{\mathcal{P}_S}}
 
-\newcommand{\SL}{\textit{Skip List}\xpace}
-\newcommand{\SLs}{\textit{Skip Lists}\space}
+\newcommand{\SL}{\textit{Skip List}\xspace}
+\newcommand{\SLs}{\textit{Skip Lists}\xspace}
 \newcommand{\Sl}{\textit{Skip list}\xspace}
 \newcommand{\sls}{\textit{skip lists}\xspace}
 \newcommand{\skl}{\textit{skip list}\xspace}
@@ -111,7 +115,7 @@
 \newcommand{\Exp}{\ensuremath{{\mathbb{E}}}\xspace}
 
 \author{Gláucio Alves de Oliveira \\ Thales A. B. Paiva 
-        \\ \small \{glaucioaorj, thalespaiva\}@gmail.com}
+        \\ \scriptsize \{glaucioaorj, thalespaiva\}@gmail.com}
 \date{\normalsize\today}
 
 \begin{document}
@@ -121,7 +125,7 @@
 
 \begin{abstract} \noindent
 
-Resumimos os principais resultados sobre Skip Lists aleatorizadas e determinísticas. 
+Resumimos os principais resultados sobre Skip Lists aleatorizadas (e em breve determinísticas). 
 Skip Lists foram introduzidas por W. Pugh como alternativa às árvores balanceadas. 
 Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementação.
 
@@ -132,6 +136,8 @@ Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementaç
 \pagebreak
 \section{\SLs}
 \FloatBarrier
+
+\subsection{Introdução}
 
 Introduzidas por Pugh em \cite{pugh}, \sls são uma extensão natural de listas ligadas ordenadas. 
 Ambas podem ser usadas para manter um conjunto ordenado de chaves, e eventualmente seus valores associados.
@@ -207,39 +213,34 @@ Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$,
         [start chain] \chainin(2a); \chainin(2c) [join=by {->}]; \chainin(2e) [join=by {->}]; \chainin(2h) [join=by {->}];
         [start chain] \chainin(3a); \chainin(3h) [join=by {->}];
       }
-      {
-        % Vertical chains
-        % Need to be separate chains from the horizontal ones
-        [start chain] \chainin(0a); \chainin(1a) [join]; \chainin(2a) [join]; \chainin(3a) [join];
-        [start chain] \chainin(0c); \chainin(1c) [join]; \chainin(2c) [join];
-        [start chain] \chainin(0d); \chainin(1d) [join];
-        [start chain] \chainin(0e); \chainin(1e) [join]; \chainin(2e) [join];
-        [start chain] \chainin(0f); \chainin(1f) [join];
-        [start chain] \chainin(0h); \chainin(1h) [join]; \chainin(2h) [join]; \chainin(3h) [join];
-      }
     \end{tikzpicture}
   \caption{Exemplo de skip list.}
   \label{fig:skiplist}
 \end{figure}
 
+\FloatBarrier
+\subsection{Definições}
+
 Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar alguns fatos interessantes.
-A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Mostraremos
+A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Mostramos
 como implementar a definição abaixo na Seção~\ref{sec:estrut}.
 
+
 \begin{definition}
-Uma \textbf{\emph{Skip List}} de elementos $c_1, c_2, \ldots, c_n$, em ordem crescente, de um conjunto totalmente 
-ordenado, é uma dupla $\left\langle S, p \right\rangle$ tal que:
+Uma \textbf{\emph{Skip List}} de elementos inteiros $c_1, c_2, \ldots, c_n$, em ordem crescente é uma dupla $\left( S, p \right)$ tal que:
 
 \begin{itemize}
 
-\item $S = \{S_0, S_1, S_2, \ldots \}$.
+\item $S = \{S_0, S_1, S_2, \ldots \}$ são os níveis da \sl.
 
-\item $S_0 = \{c_1, c_2, \ldots, c_n\}.$
+\item $S_0 = \langle -\infty, c_1, c_2, \ldots, c_n, \infty \rangle.$
 
-\item Cada $S_i$, para $i \geq 1$, é construído de forma que:
+\item $\{-\infty, \infty\} \subseteq S_i \ $ para todo $i$.
+
+\item Cada $S_i$, para $i \geq 1$, é um subconjunto ordenado do conjunto $S_{i-1}$, construído de forma que:
   \begin{enumerate}[noitemsep]
-    \item $\Pr(c \in S_i | c \in S_{i-1}) = p$.
-    \item  $\Pr(c \in S_i | c \notin S_{i-1}) = 0$.
+    \item $\Pr(c \in S_i | c \in S_{i-1} ,\  c \notin \{-\infty, \infty\}) = p$.
+    \item  $\Pr(c \in S_i | c \notin S_{i-1}, \ c \notin \{-\infty, \infty\}) = 0$.
   \end{enumerate}
 
 \end{itemize}
@@ -247,44 +248,113 @@ ordenado, é uma dupla $\left\langle S, p \right\rangle$ tal que:
 \end{definition}
 
 
-
 \begin{definition}
-
-O nível de um elemento $c$ de uma \sl é o número de conjuntos de $S$ a que $c$ pertence.
-
-
+Dado um nível $S_i$ de uma \sl, e um elemento $c$ de $S_i$, o 
 \end{definition}
 
 
-\section{Estruturas e Algoritmos} \label{sec:estrut}
+\begin{definition}
+
+A altura de um nó $c$ de uma \sl $( S, p )$, denotada por $h(c)$ é o número de conjuntos de $S$ a que $c$ pertence.
+
+\end{definition}
+
+No exemplo da Figura~\ref{fig:skiplist}, $h(16) = 2$.
 
 
-\subsection{Estruturas de Dados}
+\begin{definition}
 
-Como uma \skl é composta por nós, primeiro vamos definir a estrutura \verb|Node|. Um nó \verb|node| 
-tem os seguintes atributos:
+A altura de uma de uma \sl $L = ( S, p )$, denotada por $h(L)$ é a maior altura de seus elementos finitos.
+Simbolicamente
+$$
+h(L) = \max \{ h(c) : c \in S_0, c \notin \{ -\infty, \infty \} \}.
+$$
 
+\end{definition}
+
+No exemplo da Figura~\ref{fig:skiplist}, $h(L) = 3$.
+
+\begin{lemma} \label{lemma:prob_of_node_height}
+ Numa \sl $(S, p)$, a probabilidade de um nó ter altura maior ou igual a $k$ é $p^k$.
+
+\end{lemma}
+
+\begin{proof}
+Seja $H_N$ a variável aleatória que representa a altura de um nó. Temos, da definição de \sl:
+\begin{align*}
+\Pr(H_N \geq k | H_N \geq k - 1) &= p \\
+\frac{\Pr(H_N \geq k \land H_N \geq k - 1)}{\Pr(H_N \geq k - 1)} &= p  \\
+\frac{\Pr(H_N \geq k)}{\Pr(H_N \geq k - 1)} &= p  \\
+\Pr(H_N \geq k) &= p \Pr(H_N \geq k - 1)
+\end{align*}
+
+Como temos o caso base $\Pr(H_N \geq 1) = p$
+$$
+\Pr(H_N \geq k) = p^k.
+$$
+\end{proof}
+\section{Estruturas} \label{sec:estrut}
+
+
+
+\subsection{Nós}
+
+Como uma \skl é composta por nós, primeiro vamos definir a estrutura \verb|Node|:
+
+\begin{lstlisting}[language=C]
+typedef struct node_s {
+    int key;
+    int height;
+    struct node_s **levels;
+} Node;
+\end{lstlisting}
+
+Os atributos de uma instância \verb|node| são tais que:
 \begin{itemize}[noitemsep]
   \item \verb|node.key| : é a chave do nó, que é única para cada nó de uma \skl.
-  \item \verb|node.level| : é o número de níveis atribuído ao nó em sua criação.
-  \item \verb|node.next[i]| : é o nó para que \verb|node| aponta em seu \verb|i|-ésimo nível.
-  \item \verb|node.data| : os dados associadas ao nó, que são irrelevantes neste trabalho.
+  \item \verb|node.height| : é o número de níveis atribuído ao nó em sua criação.
+  \item \verb|node.levels[i]| : é o nó para que \verb|node| aponta em seu \verb|i|-ésimo nível.
 \end{itemize}
 
-E agora podemos definir a estrutura \verb|SkipList|. Uma instância \verb|skiplist| que representa a 
-\skl $\langle S, p \rangle$ tem os seguintes atributos:
+Opcionalmente, podemos ter um atributo \verb|value|, com os valores associados a cada nó. Porém, como esse
+atributo não muda em nada os algoritmos, não o consideramos.
+
+\subsection{\SLs}
+Agora podemos definir a estrutura \verb|SkipList|:
+\begin{lstlisting}[language=C]
+typedef struct skiplist_t {
+    double p;
+    int height;
+    Node *header;
+    Node *end;
+} SkipList;
+\end{lstlisting}
+
+Abaixo, as descrições dos atributos de uma instância \verb|skiplist| que representa a 
+\skl $( S, p )$:
 
 \begin{itemize}[noitemsep]
   \item \verb|skiplist.p| : é a probabilidade $p$.
-  \item \verb|skiplist.level| : é o nível do maior nó, e pode variar a cada inserção.
-  \item \verb|skiplist.next[i]| : é o primeiro nó do \verb|i|-ésimo nível da \skl.
+  \item \verb|skiplist.height| : é o nível do maior nó, e pode variar a cada inserção.
+  \item \verb|skiplist.header| : é o primeiro nó da \sl com chave $-\infty$.
+  \item \verb|skiplist.end| : é o último nó da \sl com chave $+infty$.
 \end{itemize}
 
 
-\subsection{Algoritmos}
+\section{Algoritmos}
 
-\subsection{Instanciação}
-\begin{lstlisting}[caption=Inicialização de nós., language=C]
+Nesta seção, descrevemos os algoritmos para as operações de \sls. Optamos por usar a linguagem C no lugar de 
+pseudocódigo pois os algoritmos usam muitos vetores e ponteiros, então um pseudo-código teria a sintaxe muito parecida com
+C, mas sem a óbvia vantagem de ser compilável. 
+
+Todo o código mostrado nas próximas seções foi testado e está funcional. Uma implementação completa pode ser vista 
+em: \url{github.com/thalespaiva/topalgo/blob/master/skiplist/skiplist.c}.
+  
+\subsection{Inicialização}
+
+A inicialização de um nó é bem simples. Atribuimos os valores de sua chave, sua altura, e alocamos espaço
+para os ponteiros dos seus níveis. Note que a altura não é gerada aleatoriamente nessa função.
+\begin{lstlisting}[caption=Inicialização de um nó., language=C]
 void node_init(Node *node, int key, int height) {
     node->key = key;
     node->height = height;
@@ -292,6 +362,10 @@ void node_init(Node *node, int key, int height) {
     node->levels = malloc(height*sizeof(*(node->levels)));
 }
 \end{lstlisting}
+
+A inicialização da \sl cria uma lista de altura $1$ com dois nós. Um nó cabeça de chave $-\infty$ e um nó final de
+chave $-\infty$. O nó cabeça tem altura como a máxima permitida mas apenas o primeiro nível é inicializado. O nó final pode 
+ter altura $0$ pois é um nó sentinela e não aponta para nenhum outro.
 
 \begin{lstlisting}[caption=Inicialização de uma skip list., language=C]
 void skiplist_init(SkipList *skiplist, double p) {
@@ -308,27 +382,20 @@ void skiplist_init(SkipList *skiplist, double p) {
 }
 \end{lstlisting}
 
-
+\FloatBarrier
 \subsection{Busca}
 
-\begin{lstlisting}[caption=Busca., language=C]
-Node *skiplist_search(SkipList *skiplist, int key) {
-    int i;
-    Node *tmp_node;
+O algoritmo de busca por um elemento genérico de chave $k$ numa \skl faz o seguinte:
+\begin{enumerate}
+  \item Percorre o nível mais alto possível até encontrar um apontador para um nó de chave maior ou igual
+a $k$.
+  \item Quando o próximo nó tem chave maior ou igual a $k$, desce um nível na busca.
+  \item Volta para o passo $1$ até que o nível de busca seja $0$.
+  \item Quando o nível for $0$, estamos olhando para o nó de maior chave, dentre os nós de chave 
+  menor ou igual a $k$. Então, se o próximo elemento tiver chave $k$, devolva-o. Senão devolva \verb|NULL|.
+\end{enumerate}
 
-    tmp_node = skiplist->header;
-    for (i = skiplist->height - 1; i >= 0; i--) {
-        while (tmp_node->levels[i]->key < key)
-            tmp_node = tmp_node->levels[i];
-    }
-
-    if (tmp_node->levels[0]->key == key)
-        return tmp_node->levels[0];
-
-    return NULL;
-}
-\end{lstlisting}
-
+A Figura~\ref{fig:sl_search} mostra o caminho da busca pelo elemento 31.
 
 \begin{figure}
   \centering
@@ -341,43 +408,102 @@ Node *skiplist_search(SkipList *skiplist, int key) {
         label/.style={rectangle,minimum size=6mm}
         every arrow/.style={thick}
       ]
-      
-
-      % The nodes of the skip list are drawn in a matrix
-      % \\ delimits the rows while & delimits the columns
       \matrix[row sep=-0.2mm, column sep=5mm]{
-        % Row 3: -infty ... +infty
         \nodelabel{3}; & \snode{3a}{-\infty}; & & & & & & & \snode{3h}{+\infty};\\
-
-        % Row 2: -infty ... 6 ... 24 ... +infty
         \nodelabel{2}; & \snode{2a}{-\infty}; & & \snode{2c}{6}; & & \snode{2e}{24}; & & & \snode{2h}{+\infty};\\
-
-        % Row 1: -infty ... 6 16 24 31 ... +infty
         \nodelabel{1}; & \snode{1a}{-\infty}; & & \snode{1c}{6}; & \snode{1d}{16}; & \snode{1e}{24}; & \snode{1f}{31}; & & \snode{1h}{+\infty};\\
-
-        % Row 0: -infty 5 6 16 24 31 39 +infty
         \nodelabel{0}; & \snode{0a}{-\infty}; & \snode{0b}{5}; & \snode{0c}{6}; & \snode{0d}{16}; & \snode{0e}{24}; & \snode{0f}{31}; & \snode{0g}{39}; & \snode{0h}{+\infty};\\
       };
 
-      % Start chaining the nodes together
       {
-        % Horizontal chains
-        % Specify a starting node (by ID), and join to other nodes (by going "through" them in an unbroken line)
-        % Eg row 2: Start at 2a, join 2e, join 2h, join 2i
         [start chain] \chainin(0a); \chainin(0b) [join=by {->}]; \chainin(0c) [join=by {->}]; \chainin(0d) [join=by {->}]; \chainin(0e) [join=by {->}]; \chainin(0f) [join=by {->}]; \chainin(0g) [join=by {->}]; \chainin(0h) [join=by {->}];
         [start chain] \chainin(1a); \chainin(1c) [join=by {->}]; \chainin(1d) [join=by {->}]; \chainin(1e) [join=by {->}]; \chainin(1f) [join=by {->}]; \chainin(1h) [join=by {->}];
         [start chain] \chainin(2a); \chainin(2c) [join=by {->}]; \chainin(2e) [join=by {->}]; \chainin(2h) [join=by {->}];
         [start chain] \chainin(3a); \chainin(3h) [join=by {->}];
       }
       {
-        % Vertical chains
-        % Need to be separate chains from the horizontal ones
-        [start chain] \chainin(0a); \chainin(1a) [join]; \chainin(2a) [join]; \chainin(3a) [join];
-        [start chain] \chainin(0c); \chainin(1c) [join]; \chainin(2c) [join];
-        [start chain] \chainin(0d); \chainin(1d) [join];
-        [start chain] \chainin(0e); \chainin(1e) [join]; \chainin(2e) [join];
-        [start chain] \chainin(0f); \chainin(1f) [join];
-        [start chain] \chainin(0h); \chainin(1h) [join]; \chainin(2h) [join]; \chainin(3h) [join];
+        \path[every node/.style={font=\sffamily\small}]
+        (3a.east) edge[dashed, o-, bend left] node [below] {} (2a.east)
+        (2a.east) edge[dashed,  -, bend left] node [below] {} (2c.north)
+        (2c.east) edge[dashed,  -, bend left] node [below] {} (2e.north)
+        (2e.east) edge[dashed,  -, bend left] node [below] {} (1e.east)
+        (1e.east) edge[dashed,  -, bend left] node [below] {} (0e.east)
+        (0e.east) edge[dashed,  -o, bend left] node [below] {} (0f.west);
+      }
+    \end{tikzpicture}
+  \caption{Caminho da busca pela chave $31$.}
+  \label{fig:sl_search}
+\end{figure}
+
+Note que qualquer busca encontra sempre o maior nível do nó de maior chave, dentre os que têm chave menor que a
+procurada. No nosso exemplo, esse nó é o de chave 24, e a busca encontrou o seu nível 2. Sugerimos que o leitor
+se familiarize com o algoritmo de busca, pois ele será usado nos algoritmos de inserção e remoção.
+
+O código em C é dado a seguir.
+\begin{lstlisting}[caption=Busca., language=C]
+Node *skiplist_search(SkipList *skiplist, int key) {
+    int i;
+    Node *tmp_node;
+
+    tmp_node = skiplist->header;
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key) %* \label{line:search_cost} *)
+            tmp_node = tmp_node->levels[i];
+    }
+
+    if (tmp_node->levels[0]->key == key)
+        return tmp_node->levels[0];
+
+    return NULL;
+}
+\end{lstlisting} \FloatBarrier
+
+\subsection{Inserção}
+
+A inserção de um nó $k$ é ligeiramente mais complicada que a busca. Além de buscar a posição da chave $k$, deve
+fazer com que todos os nós que vêm logo antes em cada nível apontem para o novo nó.
+
+Para isso, enquanto faz a busca pela pelo maior nó de chave menor que $k$, o algoritmo mantém um vetor 
+\verb|pointing_key_node| tal que:
+
+\begin{center}
+\verb|pointing_key_node[i]| contém o maior nó de chave menor que $k$ no nível \verb|i|.
+\end{center}
+
+Ou seja, \verb|pointing_key_node| contém os nós que, ao final da inserção, apontarão ao novo nó, em cada nível.
+Note que os nós em \verb|pointing_key_node[i]| não são considerados quando 
+\verb|i| maior ou igual à altura do novo nó.
+
+Uma inserção pode aumentar a altura da \sl de $h_1$ para $h_2$. Então o algoritmo deve garantir que os níveis
+entre $h_1$ e $h_2$ da cabeça da \sl apontem para os respectivos do novo nó.
+
+Como exemplo, considere a Figura~\ref{fig:sl_insert} que trata da inserção de um nó de chave $33$. Os elementos
+de \verb|pointing_key_node| são os retângulos cinza.
+
+
+\begin{figure}
+  \centering
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=10mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=6mm}
+        every arrow/.style={thick}
+      ]
+      
+      \matrix[row sep=-0.2mm, column sep=5mm]{
+        \nodelabel{3}; & \gnode{3a}{-\infty}; & & & & & & & & \snode{3h}{+\infty};\\
+        \nodelabel{2}; & \snode{2a}{-\infty}; & & \snode{2c}{6}; & & \gnode{2e}{24}; & & \inode{2I}{33}; & & \snode{2h}{+\infty};\\
+        \nodelabel{1}; & \snode{1a}{-\infty}; & & \snode{1c}{6}; & \snode{1d}{16}; & \snode{1e}{24}; & \gnode{1f}{31}; & \inode{1I}{33};  & & \snode{1h}{+\infty};\\
+        \nodelabel{0}; & \snode{0a}{-\infty}; & \snode{0b}{5}; & \snode{0c}{6}; & \snode{0d}{16}; & \snode{0e}{24}; & \gnode{0f}{31}; & \inode{0I}{33}; & \snode{0g}{39}; & \snode{0h}{+\infty};\\
+      };
+
+      {
+        [start chain] \chainin(0a); \chainin(0b) [join=by {->}]; \chainin(0c) [join=by {->}]; \chainin(0d) [join=by {->}]; \chainin(0e) [join=by {->}]; \chainin(0f) [join=by {->}];  \chainin(0I) [join=by {->}]; \chainin(0g) [join=by {->}]; \chainin(0h) [join=by {->}];
+        [start chain] \chainin(1a); \chainin(1c) [join=by {->}]; \chainin(1d) [join=by {->}]; \chainin(1e) [join=by {->}]; \chainin(1f) [join=by {->}];  \chainin(1I) [join=by {->}]; \chainin(1h) [join=by {->}];
+        [start chain] \chainin(2a); \chainin(2c) [join=by {->}]; \chainin(2e) [join=by {->}];  \chainin(2I) [join=by {->}]; \chainin(2h) [join=by {->}];
+        [start chain] \chainin(3a); \chainin(3h) [join=by {->}];
       }
       {
        \path[every node/.style={font=\sffamily\small}]
@@ -389,13 +515,11 @@ Node *skiplist_search(SkipList *skiplist, int key) {
         (1f.east) edge[dashed,  -o, bend left] node [below] {} (0f.east);
       }
     \end{tikzpicture}
-  \caption{Caminho da busca pela chave $31$.}
-  \label{fig:skiplist}
+  \caption{Inserção de um nó de chave $33$.}
+  \label{fig:sl_insert}
 \end{figure}
 
-
-\subsection{Inserção}
-
+Abaixo, o algoritmo em C. 
 
 \begin{lstlisting}[caption=Inserção., language=C]
 void skiplist_insert(SkipList *skiplist, int key) {
@@ -404,8 +528,46 @@ void skiplist_insert(SkipList *skiplist, int key) {
     Node *tmp_node;
     Node *pointing_key_node[SKIPLIST_MAX_HEIGHT];
 
+    tmp_node = skiplist->header;                         %* \label{line:ins_beg_p1} *)
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+        pointing_key_node[i] = tmp_node;
+    }                                                    
+
+    tmp_node = tmp_node->levels[0];
+    if (tmp_node->key == key)
+        return;                                           %* \label{line:ins_end_p1} *)
+
     key_node = malloc(sizeof(*key_node));
     node_init(key_node, key, skiplist_get_random_node_height(skiplist));
+
+    if (key_node->height > skiplist->height) {            %* \label{line:ins_beg_p2} *)
+        for (i = skiplist->height; i < key_node->height; i++) {
+            pointing_key_node[i] = skiplist->header;
+            skiplist->header->levels[i] = skiplist->end;
+        }
+        skiplist->height = key_node->height;
+    }                                                      %* \label{line:ins_end_p2} *)
+
+    for (i = 0; i < key_node->height; i++) {                      %* \label{line:ins_beg_p3} *)
+        key_node->levels[i] = pointing_key_node[i]->levels[i];
+        pointing_key_node[i]->levels[i] = key_node;
+    }                                                            %* \label{line:ins_end_p3} *)
+}
+\end{lstlisting}
+
+\subsection{Remoção}
+
+A remoção é análoga à Inserção. Para remover um nó $c$, primeiro encontra os nós que apontam a
+$c$ em cada nível. Depois, faz o nível $i$ de cada um desses nós apontar ao nó que $c$ aponta no nível $i$.
+No final, libera a memória ocupada pelo nó removido.
+
+\begin{lstlisting}[caption=Remoção., language=C]
+void skiplist_remove(SkipList *skiplist, int key) {
+    int i;
+    Node *tmp_node;
+    Node *pointing_key_node[SKIPLIST_MAX_HEIGHT];
 
     tmp_node = skiplist->header;
     for (i = skiplist->height - 1; i >= 0; i--) {
@@ -415,41 +577,50 @@ void skiplist_insert(SkipList *skiplist, int key) {
     }
 
     tmp_node = tmp_node->levels[0];
-    if (tmp_node->key == key) 
+    if (tmp_node->key != key) 
         return;
 
-    if (key_node->height > skiplist->height) {
-        for (i = skiplist->height; i < key_node->height; i++) {
-            pointing_key_node[i] = skiplist->header;
-            skiplist->header->levels[i] = skiplist->end;
-        }
-        skiplist->height = key_node->height;
-    }
-
-    for (i = 0; i < key_node->height; i++) {
-        key_node->levels[i] = pointing_key_node[i]->levels[i];
-        pointing_key_node[i]->levels[i] = key_node;
-    }
+    for (i = 0; i < skiplist->height; i++) {             %* \label{line:rem_p1} *)
+        if (pointing_key_node[i]->levels[i] != tmp_node)
+            break;
+        pointing_key_node[i]->levels[i] = tmp_node->levels[i];
+    }                                                     %* \label{line:rem_p2} *)
+    free_node(tmp_node);
 }
+
 \end{lstlisting}
 
-\subsection{Remoção}
 
-
-
-
-\pagebreak
 \section{Análise dos Algoritmos}
+
+\subsection{Inicialização}
+
+\paragraph{Nó}
+\ \\ 
+Deve ser claro que a inicialização de um nó é $\cO(1)$, pois não tem laços e só faz atribuições simples.
+
+\paragraph{\SL}
+\ \\
+Também deve ser claro que a inicialização de uma \SL é $\cO(1)$, pois também não tem laços e cada linha é
+uma atribuição simples ou uma chamada a \verb|node_init|.
 
 
 \subsection{Busca}
 
+Como a função de busca é mais complicada, vamos primeiro definir o custo de uma busca.
 
 \begin{definition}
 
-O \textbf{custo de busca} de um elemento de uma \sl é o número de comparações feitas durante a busca por ele.
+O \textbf{custo de busca} de um elemento de uma \sl é o número de comparações feitas durante a busca por ele, sem
+contar a comparação final, que testa se o nó encontrado tem a chave procurada.
 
 \end{definition}
+
+Assim, o custo de uma busca é o número de vezes que a comparação da linha \ref{line:search_cost} do algoritmo
+de busca é executada.
+
+Um conceito que nos ajuda a estudar o custo de buscas é o de caminho de busca. Com ele, podemos analisar o
+custo de busca separadamente em seus componentes vertical e horizontal.
 
 \begin{definition}
 
@@ -469,9 +640,9 @@ O custo de busca de um elemento é igual ao tamanho do caminho de busca por esse
 \end{lemma}
 
 \begin{proof}
-Cada $\rightarrow$ é adicionado pela chamada \verb|x = x.next[i]|, que ocorre quando a condição
-\verb|x.next[i].key < searched_key| é verificada. 
-Cada $\downarrow$ é adicionado quando ocorre quando a condição \verb|x.next[i].key < searched_key| 
+Cada $\rightarrow$ é adicionado pela chamada de \verb|tmp_node = tmp_node->levels[i]|, que ocorre quando a condição
+\verb|tmp_node->levels[i]->key < key| é verificada. 
+Cada $\downarrow$ é adicionado quando ocorre quando a condição \verb|tmp_node->levels[i]->key < key| 
 não é verificada.
 
 Logo, cada comparação adiciona um passo ao caminho de busca, e não há outro modo de adicionar um passo ao
@@ -489,17 +660,17 @@ O número esperado de passos $\downarrow$ em qualquer caminho de busca é $\cO(\
 
 \begin{proof}
 
-Note que toda busca desce até o nível 1 da \skl, então o número esperado de passos é o número de níveis,
-ou altura, da \skl. Seja $H$ a variável aleatória que representa a altura de uma \skl $L$. E sejam 
-$H_1, H_2, \ldots, H_n$ as variáveis aleatórias que representam as alturas de $c_1, c_2, \ldots, c_n$, 
-respectivamente.
+Note que toda busca desce até o nível 0 da \skl, então o número esperado de passos é a altura esperada, da \skl. Seja $H$ a variável aleatória que representa a altura de uma \skl $L$. E sejam 
+$H_1, H_2, \ldots, H_n$ as variáveis aleatórias que representam as alturas dos elementos finitos
+$c_1, c_2, \ldots, c_n$, respectivamente.
 
 Como $H = \max \{H_i : i = 1, \ldots, n \}$, é claro que
 $$
 \Pr(H \geq k) \leq \sum_{i=1}^n \Pr(H_i \geq k).
 $$
 
-As $H_i$ seguem a mesma distribuição e essas variáveis são tais que $ \Pr(H_i \geq k) = p^k$. Então
+As $H_i$ seguem a mesma distribuição e essas variáveis são tais que, pelo Lema~\ref{lemma:prob_of_node_height},  
+ $ \Pr(H_i \geq k) = p^k$. Então
 $$
 \Pr(H \geq k) \leq np^k.
 $$
@@ -549,15 +720,15 @@ O número esperado de passos $\rightarrow$ em qualquer caminho de busca é $\cO(
 \end{lemma}
 
 \begin{proof}
-Considere que estamos percorrendo ao contrário um caminho de busca qualquer e nos encontramos num nível qualquer 
-de um nó qualquer. Temos duas opções:
+Considere que estamos percorrendo ao contrário um caminho de busca por um elemento $c$ qualquer 
+e nos encontramos num nível qualquer de um nó que não $c$. Temos duas opções:
 \begin{enumerate}[noitemsep]
   \item Se possível, subir mais um nível. 
   \item Se não, ir para a esquerda.
 \end{enumerate}
 
 Note que, se for possível subir, o caminho invertido deve subir, caso contrário, não estamos percorrendo um 
-caminho válido. Isso pois qualquer caminho válido encontra sempre o nível mais alto do nó buscado.
+caminho válido.
 
 A probabilidade de ser possível subir mais um nível neste nó é justamente a probabilidade de haver ao menos
 $i + 1$ níveis no nó dado que há ao menos $i$ níveis, ou seja, $p$. Logo a probabilidade de termos de andar à
@@ -615,13 +786,124 @@ $\cO(\log n)$, a soma também é $\cO(\log n)$.
 
 \subsection{Inserção}
 
+Vamos dividir o algoritmo de inserção em três partes:
+\begin{enumerate}[noitemsep]
+  \item Busca do maior elemento de chave menor do que a chave do nó a ser inserido, com cálculo do vetor 
+    \verb|pointing_to_key_node|. Código da linha~\ref{line:ins_beg_p1} até a linha~\ref{line:ins_end_p1}.
+  \item Atualização da altura da \sl, se necessário. 
+      Código da linha~\ref{line:ins_beg_p2} até a linha~\ref{line:ins_end_p2}.
+  \item Inserção do nó na \sl. Código da linha~\ref{line:ins_beg_p3} até a linha~\ref{line:ins_end_p3}. 
+\end{enumerate}
 
+É fácil perceber que o custo da função de inserção é composto pela soma dos custos das partes, mais a soma
+de um custo constante causado pelas linhas de custo $\cO(1)$, que estão fora das partes de interesse.
+
+\paragraph{Parte 1}
+\ \\
+\begin{lstlisting}[caption=Inserção Parte 1., language=C]
+    tmp_node = skiplist->header;                        
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+        pointing_key_node[i] = tmp_node;
+    }                                                    
+
+    tmp_node = tmp_node->levels[0];
+    if (tmp_node->key == key)
+        return;                                          
+\end{lstlisting}
+
+Seja $H$ novamente a variável aleatória que representa o tamanho de uma \sl.
+O custo da parte 1 é o custo de uma busca mais $H$ vezes o custo de uma atualização de posição de um vetor,
+que é $\cO(1)$.
+
+Assim, seja $P_1$ o custo da parte 1. Temos que:
+$$
+  \Exp(P_1) = \cO(\log n) + \Exp(H) = \cO(\log n) + \cO(\log n) = \cO(\log n).
+$$
+
+
+\paragraph{Parte 2}
+\ \\
+
+\begin{lstlisting}[caption=Inserção Parte 2., language=C]
+    if (key_node->height > skiplist->height) {            
+        for (i = skiplist->height; i < key_node->height; i++) {
+            pointing_key_node[i] = skiplist->header;
+            skiplist->header->levels[i] = skiplist->end;
+        }
+        skiplist->height = key_node->height;
+    }                                                      
+\end{lstlisting}
+
+Seja $P_2$ a variável aleatória que representa o custo da parte 2. $P_2$ é sempre menor ou igual ao custo no pior
+caso. Sejam $H$ e $H_N$ as variáveis aleatórias que representam as alturas da \sl e do nó a ser adicionado,
+respectivamente. Temos que
+$$
+P_2 \leq 2(H_N - H) + 1 \leq 2 H_N + 1 
+$$
+
+Então podemos afirmar, sobre o custo esperado, que
+\begin{align*}
+\Exp(P_2) &\leq 2\Exp(H_N) + 1 = \frac{2}{p} + 1  = \cO \left( \frac{2}{p} + 1 \right) = \cO(1).
+\end{align*}
+
+
+\paragraph{Parte 3}
+\ \\
+
+\begin{lstlisting}[caption=Inserção Parte 3., language=C]
+    for (i = 0; i < key_node->height; i++) {                     
+        key_node->levels[i] = pointing_key_node[i]->levels[i];
+        pointing_key_node[i]->levels[i] = key_node;
+    }                                                           
+\end{lstlisting}
+
+Sejam $P_3$ e $H_N$ as variáveis aleatórias que representam o custo da parte 3, e a altura do nó a ser
+inserido. Temos que:
+
+\begin{align*}
+P_3 &= 2 H_N \\
+\Exp(P_3) &= 2 \Exp(H_N) = \frac{2}{p} = \cO(1).
+\end{align*}
+
+
+Juntando os resultados das partes, temos que o custo esperado de uma inserção é:
+
+\begin{align*}
+\Exp(P_1 + P_2 + P_3) = \Exp(P_1) + \Exp(P_2) + \Exp(P_3) = \cO(\log n).
+\end{align*}
 
 
 \subsection{Remoção}
 
+O algoritmo da remoção é muito parecido com o da inserção. A diferença está no trecho de código da linha~\ref{line:rem_p1}
+até a linha~\ref{line:rem_p2}, copiado abaixo:
+\begin{lstlisting}[caption=Parte exclusiva da Remoção, language=C]
+    for (i = 0; i < skiplist->height; i++) {
+        if (pointing_key_node[i]->levels[i] != tmp_node)
+            break;
+        pointing_key_node[i]->levels[i] = tmp_node->levels[i];
+    }
+    free_node(tmp_node);
+\end{lstlisting}
 
+O número de operações é proporcional à altura da \sl, que tem valor esperado $\cO(\log n)$. E a função 
+que libera um nó o faz em $\cO(1)$, já que é só uma chamada a \verb|free(node->levels)|. Então, se $R$ e $I$ forem
+as variáveis aleatórias que representam os custos esperados da remoção e da inserção, respectivamente, temos que,
+para alguma constante $c$:
+\begin{align*}
+R &\leq I + c( \log n + 1) \\
+\Exp(R) &\leq \Exp(I) + c( \log n + 1) = \cO(\log n) + \cO(\log n) = O(\log n).
+\end{align*}
 
+\section{Próxima Entrega}
+
+Para a próxima entrega, vamos incluir a análise de \sls determinísticas. Depois da análise teórica, queremos
+comparar empiricamente o custo das \sls com o de árvores balanceadas. Essa comparação será importante pois, como
+as todas as estruturas têm complexidade logarítmica, uma alteração na constante faz bastante diferença. Uma
+análise interessante que também queremos colocar é sobre a proporção de cache misses, 
+ou erros na previsão de branch, para cada estrutura. 
 
 
 %----------------------------------------------------------------------------------------
