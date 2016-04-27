@@ -138,14 +138,12 @@ void free_node(Node *node) {
     free(node->levels);
     node->levels = NULL;
 }
+
 void skiplist_insert(SkipList *skiplist, int key) {
     int i;
     Node *key_node;
     Node *tmp_node;
     Node *pointing_key_node[SKIPLIST_MAX_HEIGHT];
-
-    key_node = malloc(sizeof(*key_node));
-    node_init(key_node, key, skiplist_get_random_node_height(skiplist));
 
     tmp_node = skiplist->header;
     for (i = skiplist->height - 1; i >= 0; i--) {
@@ -157,6 +155,9 @@ void skiplist_insert(SkipList *skiplist, int key) {
     tmp_node = tmp_node->levels[0];
     if (tmp_node->key == key) /* Já havia um elemento com chave key. */
         return;
+
+    key_node = malloc(sizeof(*key_node));
+    node_init(key_node, key, skiplist_get_random_node_height(skiplist));
 
     if (key_node->height > skiplist->height) {
         for (i = skiplist->height; i < key_node->height; i++) {
