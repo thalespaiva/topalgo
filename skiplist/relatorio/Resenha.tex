@@ -139,7 +139,7 @@ Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementaç
 
 \subsection{Introdução}
 
-Introduzidas por Pugh em \cite{pugh}, \sls são uma extensão natural de listas ligadas ordenadas. 
+Introduzidas por Pugh em \cite{pugh1990skip}, \sls são uma extensão natural de listas ligadas ordenadas. 
 Ambas podem ser usadas para manter um conjunto ordenado de chaves, e eventualmente seus valores associados.
 Mostramos nas próximas seções que operações de busca, inserção, e remoção em \sls são feitas em $\cO(\log n)$, 
 como para árvores balanceadas de busca. Isso faz com que a escolha entre usar \sls ou árvores balanceadas numa
@@ -221,8 +221,11 @@ Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$,
 \FloatBarrier
 \subsection{Definições}
 
-Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar alguns fatos interessantes.
-A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Mostramos
+Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar fatos probabilísticos sobre
+elas.
+A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Foi
+parcialmente baseada na dissertação de mestrado de Mendes \cite{mendes2008estruturas}.
+Mostramos
 como implementar a definição abaixo na Seção~\ref{sec:estrut}.
 
 
@@ -345,7 +348,8 @@ Abaixo, as descrições dos atributos de uma instância \verb|skiplist| que repr
 
 Nesta seção, descrevemos os algoritmos para as operações de \sls. Optamos por usar a linguagem C no lugar de 
 pseudocódigo pois os algoritmos usam muitos vetores e ponteiros, então um pseudo-código teria a sintaxe muito parecida com
-C, mas sem a óbvia vantagem de ser compilável. 
+C, mas sem a óbvia vantagem de ser compilável. Os algoritmos implementados são exatamente os apresentados pelo
+Pugh \cite{pugh1990skip}. Algumas ideias de estruturas e implementação vieram com ajuda de \cite{goodrich2014data}.
 
 Todo o código mostrado nas próximas seções foi testado e está funcional. Uma implementação completa pode ser vista 
 em: \url{github.com/thalespaiva/topalgo/blob/master/skiplist/skiplist.c}.
@@ -592,6 +596,9 @@ void skiplist_remove(SkipList *skiplist, int key) {
 
 
 \section{Análise dos Algoritmos}
+
+Iremos analisar cada um dos algoritmos apresentados. A estrutura da nossa análise é baseada em 
+\cite{mendes2008estruturas}, mas também usamos alguns argumentos do Pugh \cite{pugh1990skip}.
 
 \subsection{Inicialização}
 
