@@ -27,10 +27,24 @@
 \usepackage{indentfirst}
 \usepackage{placeins}
 
+\usepackage{listings}
+\renewcommand\lstlistingname{Algoritmo}
+\lstset{ %
+  numbers=left,  
+  firstnumber=1,
+  numberfirstline=true
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\ttfamily\scriptsize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+}
 
 \usepackage{enumitem}
 \setenumerate{noitemsep}
-
 
 \usepackage{tikz}
 \usetikzlibrary{arrows}
@@ -40,7 +54,6 @@
 
 \newcommand{\snode}[2]{\node(#1)[item]{\ensuremath{#2}}}
 \newcommand{\nodelabel}[1]{\node[label]{\ensuremath{S_#1}}}
-
 
 \usepackage{fancyhdr}
 \pagestyle{fancyplain}
@@ -55,7 +68,6 @@
 
 \bibliographystyle{apalike}
 %\bibliographystyle{alpha}
-
 
 \newtheorem{theorem}{Teorema}
 \newtheorem{definition}{Definição}
@@ -84,8 +96,6 @@
 
 \newcommand{\cP}{\ensuremath{\mathcal{P}}}
 \newcommand{\cNP}{\ensuremath{\mathcal{NP}}}
-
-
 \newcommand{\cO}{\ensuremath{\mathcal{O}}}
 \newcommand{\Ps}{\ensuremath{\mathcal{P}_S}}
 
@@ -100,11 +110,9 @@
 
 \newcommand{\Exp}{\ensuremath{{\mathbb{E}}}\xspace}
 
-
 \author{Gláucio Alves de Oliveira \\ Thales A. B. Paiva 
         \\ \small \{glaucioaorj, thalespaiva\}@gmail.com}
 \date{\normalsize\today}
-
 
 \begin{document}
 
@@ -167,7 +175,7 @@ Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$,
     \begin{tikzpicture}[
         start chain,
         every node/.style={font=\small},
-        item/.style={rectangle,minimum height=6mm,minimum width=10mm,
+        item/.style={rectangle,minimum height=7mm,minimum width=10mm,
                      rounded corners=1mm,thick,draw=black},
         label/.style={rectangle,minimum size=6mm}
       ]
@@ -175,7 +183,7 @@ Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$,
 
       % The nodes of the skip list are drawn in a matrix
       % \\ delimits the rows while & delimits the columns
-      \matrix[row sep=3mm, column sep=5mm]{
+      \matrix[row sep=-0.2mm, column sep=5mm]{
         % Row 3: -infty ... +infty
         \nodelabel{3}; & \snode{3a}{-\infty}; & & & & & & & \snode{3h}{+\infty};\\
 
@@ -275,8 +283,167 @@ E agora podemos definir a estrutura \verb|SkipList|. Uma instância \verb|skipli
 
 \subsection{Algoritmos}
 
+\subsection{Instanciação}
+\begin{lstlisting}[caption=Inicialização de nós., language=C]
+void node_init(Node *node, int key, int height) {
+    node->key = key;
+    node->height = height;
+
+    node->levels = malloc(height*sizeof(*(node->levels)));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Inicialização de uma skip list., language=C]
+void skiplist_init(SkipList *skiplist, double p) {
+    skiplist->p = p;
+
+    skiplist->header = malloc(sizeof(*(skiplist->header)));
+    skiplist->end = malloc(sizeof(*(skiplist->end)));
+
+    node_init(skiplist->header, NEG_INF, SKIPLIST_MAX_HEIGHT);
+    node_init(skiplist->end, INF, 0);
+
+    skiplist->height = 1;
+    skiplist->header->levels[0] = skiplist->end;
+}
+\end{lstlisting}
+
+
+\subsection{Busca}
+
+\begin{lstlisting}[caption=Busca., language=C]
+Node *skiplist_search(SkipList *skiplist, int key) {
+    int i;
+    Node *tmp_node;
+
+    tmp_node = skiplist->header;
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+    }
+
+    if (tmp_node->levels[0]->key == key)
+        return tmp_node->levels[0];
+
+    return NULL;
+}
+\end{lstlisting}
+
+
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/    
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=10mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=6mm}
+        every arrow/.style={thick}
+      ]
+      
+
+      % The nodes of the skip list are drawn in a matrix
+      % \\ delimits the rows while & delimits the columns
+      \matrix[row sep=-0.2mm, column sep=5mm]{
+        % Row 3: -infty ... +infty
+        \nodelabel{3}; & \snode{3a}{-\infty}; & & & & & & & \snode{3h}{+\infty};\\
+
+        % Row 2: -infty ... 6 ... 24 ... +infty
+        \nodelabel{2}; & \snode{2a}{-\infty}; & & \snode{2c}{6}; & & \snode{2e}{24}; & & & \snode{2h}{+\infty};\\
+
+        % Row 1: -infty ... 6 16 24 31 ... +infty
+        \nodelabel{1}; & \snode{1a}{-\infty}; & & \snode{1c}{6}; & \snode{1d}{16}; & \snode{1e}{24}; & \snode{1f}{31}; & & \snode{1h}{+\infty};\\
+
+        % Row 0: -infty 5 6 16 24 31 39 +infty
+        \nodelabel{0}; & \snode{0a}{-\infty}; & \snode{0b}{5}; & \snode{0c}{6}; & \snode{0d}{16}; & \snode{0e}{24}; & \snode{0f}{31}; & \snode{0g}{39}; & \snode{0h}{+\infty};\\
+      };
+
+      % Start chaining the nodes together
+      {
+        % Horizontal chains
+        % Specify a starting node (by ID), and join to other nodes (by going "through" them in an unbroken line)
+        % Eg row 2: Start at 2a, join 2e, join 2h, join 2i
+        [start chain] \chainin(0a); \chainin(0b) [join=by {->}]; \chainin(0c) [join=by {->}]; \chainin(0d) [join=by {->}]; \chainin(0e) [join=by {->}]; \chainin(0f) [join=by {->}]; \chainin(0g) [join=by {->}]; \chainin(0h) [join=by {->}];
+        [start chain] \chainin(1a); \chainin(1c) [join=by {->}]; \chainin(1d) [join=by {->}]; \chainin(1e) [join=by {->}]; \chainin(1f) [join=by {->}]; \chainin(1h) [join=by {->}];
+        [start chain] \chainin(2a); \chainin(2c) [join=by {->}]; \chainin(2e) [join=by {->}]; \chainin(2h) [join=by {->}];
+        [start chain] \chainin(3a); \chainin(3h) [join=by {->}];
+      }
+      {
+        % Vertical chains
+        % Need to be separate chains from the horizontal ones
+        [start chain] \chainin(0a); \chainin(1a) [join]; \chainin(2a) [join]; \chainin(3a) [join];
+        [start chain] \chainin(0c); \chainin(1c) [join]; \chainin(2c) [join];
+        [start chain] \chainin(0d); \chainin(1d) [join];
+        [start chain] \chainin(0e); \chainin(1e) [join]; \chainin(2e) [join];
+        [start chain] \chainin(0f); \chainin(1f) [join];
+        [start chain] \chainin(0h); \chainin(1h) [join]; \chainin(2h) [join]; \chainin(3h) [join];
+      }
+      {
+       \path[every node/.style={font=\sffamily\small}]
+        (3a.east) edge[dashed, o-, bend left] node [below] {} (2a.east)
+        (2a.east) edge[dashed,  -, bend left] node [below] {} (2c.north)
+        (2c.east) edge[dashed,  -, bend left] node [below] {} (2e.north)
+        (2e.east) edge[dashed,  -, bend left] node [below] {} (1e.east)
+        (1e.east) edge[dashed,  -, bend left] node [below] {} (1f.north)
+        (1f.east) edge[dashed,  -o, bend left] node [below] {} (0f.east);
+      }
+    \end{tikzpicture}
+  \caption{Caminho da busca pela chave $31$.}
+  \label{fig:skiplist}
+\end{figure}
+
+
+\subsection{Inserção}
+
+
+\begin{lstlisting}[caption=Inserção., language=C]
+void skiplist_insert(SkipList *skiplist, int key) {
+    int i;
+    Node *key_node;
+    Node *tmp_node;
+    Node *pointing_key_node[SKIPLIST_MAX_HEIGHT];
+
+    key_node = malloc(sizeof(*key_node));
+    node_init(key_node, key, skiplist_get_random_node_height(skiplist));
+
+    tmp_node = skiplist->header;
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        while (tmp_node->levels[i]->key < key)
+            tmp_node = tmp_node->levels[i];
+        pointing_key_node[i] = tmp_node;
+    }
+
+    tmp_node = tmp_node->levels[0];
+    if (tmp_node->key == key) 
+        return;
+
+    if (key_node->height > skiplist->height) {
+        for (i = skiplist->height; i < key_node->height; i++) {
+            pointing_key_node[i] = skiplist->header;
+            skiplist->header->levels[i] = skiplist->end;
+        }
+        skiplist->height = key_node->height;
+    }
+
+    for (i = 0; i < key_node->height; i++) {
+        key_node->levels[i] = pointing_key_node[i]->levels[i];
+        pointing_key_node[i]->levels[i] = key_node;
+    }
+}
+\end{lstlisting}
+
+\subsection{Remoção}
+
+
+
+
 \pagebreak
-\section{Análise Assintótica do Custo Médio}
+\section{Análise dos Algoritmos}
+
+
+\subsection{Busca}
+
 
 \begin{definition}
 
@@ -436,8 +603,6 @@ Portanto, $\Exp(R) = \cO(\log n).$
 
 \end{proof}
 
-
-
 \begin{theorem}
 O custo médio de busca em \sls é $\cO(\log n)$. 
 \end{theorem}
@@ -447,6 +612,13 @@ O custo médio de busca em \sls é $\cO(\log n)$.
 num caminho é a soma do número esperado de passos $\downarrow$ com o de passos $\rightarrow$. Como ambos são
 $\cO(\log n)$, a soma também é $\cO(\log n)$.
 \end{proof}
+
+\subsection{Inserção}
+
+
+
+
+\subsection{Remoção}
 
 
 
