@@ -252,13 +252,8 @@ Uma \textbf{\emph{Skip List}} de elementos inteiros $c_1, c_2, \ldots, c_n$, em 
 
 
 \begin{definition}
-Dado um nível $S_i$ de uma \sl, e um elemento $c$ de $S_i$, o 
-\end{definition}
 
-
-\begin{definition}
-
-A altura de um nó $c$ de uma \sl $( S, p )$, denotada por $h(c)$ é o número de conjuntos de $S$ a que $c$ pertence.
+A \textbf{altura de um nó} $c$ de uma \sl $( S, p )$, denotada por $h(c)$ é o número de conjuntos de $S$ a que $c$ pertence.
 
 \end{definition}
 
@@ -267,7 +262,7 @@ No exemplo da Figura~\ref{fig:skiplist}, $h(16) = 2$.
 
 \begin{definition}
 
-A altura de uma de uma \sl $L = ( S, p )$, denotada por $h(L)$ é a maior altura de seus elementos finitos.
+A \textbf{altura de uma de uma \sl} $L = ( S, p )$, denotada por $h(L)$ é a maior altura de seus elementos finitos.
 Simbolicamente
 $$
 h(L) = \max \{ h(c) : c \in S_0, c \notin \{ -\infty, \infty \} \}.
@@ -288,7 +283,7 @@ Seja $H_N$ a variável aleatória que representa a altura de um nó. Temos, da d
 \Pr(H_N \geq k | H_N \geq k - 1) &= p \\
 \frac{\Pr(H_N \geq k \land H_N \geq k - 1)}{\Pr(H_N \geq k - 1)} &= p  \\
 \frac{\Pr(H_N \geq k)}{\Pr(H_N \geq k - 1)} &= p  \\
-\Pr(H_N \geq k) &= p \Pr(H_N \geq k - 1)
+\Pr(H_N \geq k) &= p \Pr(H_N \geq k - 1).
 \end{align*}
 
 Como temos o caso base $\Pr(H_N \geq 1) = p$
@@ -340,7 +335,7 @@ Abaixo, as descrições dos atributos de uma instância \verb|skiplist| que repr
   \item \verb|skiplist.p| : é a probabilidade $p$.
   \item \verb|skiplist.height| : é o nível do maior nó, e pode variar a cada inserção.
   \item \verb|skiplist.header| : é o primeiro nó da \sl com chave $-\infty$.
-  \item \verb|skiplist.end| : é o último nó da \sl com chave $+infty$.
+  \item \verb|skiplist.end| : é o último nó da \sl com chave $+\infty$.
 \end{itemize}
 
 
@@ -383,6 +378,24 @@ void skiplist_init(SkipList *skiplist, double p) {
 
     skiplist->height = 1;
     skiplist->header->levels[0] = skiplist->end;
+}
+\end{lstlisting}
+
+Na Seção~\ref{sec:ins}, descrevemos o algoritmo de inserção que usa uma função para gerar alturas pseudo-aleatórias de nós. Uma
+possível implementação para esta função é dada abaixo. 
+Seu funcionamento é bem simples.
+
+\begin{lstlisting}[caption=Geração de alturas., language=C]
+int skiplist_get_random_node_height(SkipList *skiplist) {
+    int height;
+
+    height = 1;
+    while (rand()/(1.0 +  RAND_MAX) < skiplist->p)
+        height++;
+
+    if (height > SKIPLIST_MAX_HEIGHT)
+        height = SKIPLIST_MAX_HEIGHT;
+    return height;
 }
 \end{lstlisting}
 
@@ -462,7 +475,7 @@ Node *skiplist_search(SkipList *skiplist, int key) {
 }
 \end{lstlisting} \FloatBarrier
 
-\subsection{Inserção}
+\subsection{Inserção} \label{sec:ins}
 
 A inserção de um nó $k$ é ligeiramente mais complicada que a busca. Além de buscar a posição da chave $k$, deve
 fazer com que todos os nós que vêm logo antes em cada nível apontem para o novo nó.
@@ -611,6 +624,10 @@ Deve ser claro que a inicialização de um nó é $\cO(1)$, pois não tem laços
 Também deve ser claro que a inicialização de uma \SL é $\cO(1)$, pois também não tem laços e cada linha é
 uma atribuição simples ou uma chamada a \verb|node_init|.
 
+\paragraph{Geração de Alturas de Nós}
+\ \\
+O número esperado de operações feitas pela função \verb|skiplist_get_random_node_height| é proporcional à 
+altura esperada de um nó. Assim, essa chamada tem complexidade $\cO(1/p) = \cO(1)$.
 
 \subsection{Busca}
 
