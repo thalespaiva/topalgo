@@ -788,10 +788,26 @@ $$
 R = \sum_i^H R_i.
 $$
 
-E temos que
+Como propriedade da esperança, temos
 \begin{align*}
-\Exp(R) = \Exp \left( \sum_{i=1}^H R_i \right) = \sum_{i=1}^{\Exp(H)} \Exp(R_i)
- =  \Exp(H) \Exp(R_i) = \cO(\log n) \cO(1).
+\Exp(R) = \Exp(\Exp(R|H)).
+\end{align*}
+
+Podemos expandir o termo $\Exp(R|H)$, obtendo
+\begin{align*}
+\Exp(R|H = h)
+  &= \sum_{r = 1}^{\infty} r \Pr(R = r | H = h) 
+   = \sum_{r = 1}^{\infty} r \Pr \left( \sum_{i=1}^{H} R_i = r | H = h \right) \\
+  &= \sum_{r = 1}^{\infty} r \Pr \left( \sum_{i=1}^{h} R_i = r \right) 
+   = \sum_{r = 1}^{\infty} r \Pr \left( hR_i = r \right) \\
+  &= \sum_{r = 1}^{\infty} r \Pr \left( R_i = \frac{r}{h} \right)   
+   = h\sum_{r = 1}^{\infty} \frac{r}{h} \Pr \left( R_i = \frac{r}{h} \right) \\
+  &= h \Exp(R_i).
+\end{align*}
+
+E como $\Exp(R_i)$ não é uma variável aleatória, temos pela linearidade da esperança que
+\begin{align*}
+\Exp(R) = \Exp(H \Exp(R_i)) = \Exp(H)\Exp(R_i)= \cO(\log n) \cO(1).
 \end{align*}
 
 Portanto, $\Exp(R) = \cO(\log n).$
@@ -803,8 +819,8 @@ O custo médio de busca em \sls é $\cO(\log n)$.
 \end{theorem}
 
 \begin{proof}
-É corolário dos lemas \ref{lemma:downarrow} e \ref{lemma:rightarrow}. Como num caminho o número de passos
-num caminho é a soma do número esperado de passos $\downarrow$ com o de passos $\rightarrow$. Como ambos são
+É corolário dos lemas \ref{lemma:downarrow} e \ref{lemma:rightarrow}. Num caminho o número de passos
+é a soma do número esperado de passos $\downarrow$ com o de passos $\rightarrow$. Como ambos são
 $\cO(\log n)$, a soma também é $\cO(\log n)$.
 \end{proof}
 
