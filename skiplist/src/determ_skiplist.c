@@ -3,8 +3,9 @@
 #include <time.h>
 #include <limits.h>
 
-#define SKIPLIST_MAX_HEIGHT 16
+#define SKIPLIST_MAX_HEIGHT 20
 #define SKIPLIST_MAX_KEY 100
+#define SKIPLIST_MAX_ENTRIES 2000
 
 #define INF INT_MAX
 #define NEG_INF INT_MIN
@@ -21,13 +22,15 @@ typedef struct skiplist_t {
     int height;
 } SkipList;
 
+void cell_init(Cell *cell, int key, Cell *bottom, Cell *right);
 Cell *skiplist_search(SkipList *skiplist, int key);
 void skiplist_insert(SkipList *skiplist, int key);
 void skiplist_init(SkipList *skiplist);
-void cell_init(Cell *cell, int key);
 void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
                         Cell *pointing_key_node[]);
 void skiplist_vertical_print(SkipList *skiplist);
+void skiplist_grow(SkipList *skiplist);
+
 
 int main(int argc, char *argv[]) {
     int i, n, seed, key;
@@ -52,7 +55,7 @@ int main(int argc, char *argv[]) {
     printf("    (i    , key)\n");
     for (i = 0; i < n; i++) {
         key = rand() % SKIPLIST_MAX_KEY;
-        printf("    (%-4d , %4d)\n", i, key);
+        /*printf("    (%-4d , %4d)\n", i, key);*/
         skiplist_insert(&skiplist, key);
         skiplist_vertical_print(&skiplist);
 
@@ -62,7 +65,7 @@ int main(int argc, char *argv[]) {
         printf("[+] key %d found.\n", node->key);
     else
         printf("[-] Key 15 not found.\n");
-    skiplist_vertical_print(&skiplist);
+    /* skiplist_vertical_print(&skiplist); */
     return 0;
 }
 
@@ -83,73 +86,34 @@ Cell *skiplist_search(SkipList *skiplist, int key) {
 }
 
 
-void skiplist_vertical_print(SkipList *skiplist) {
-    Cell *cell, *base_cell;
-    int base_list[5000];
-    int i, n;
-
-    i = 0;
-
-    for (cell = skiplist->header; cell->bottom != NULL; cell = cell->bottom);
-
-    for (i = 0; cell->right != NULL; cell = cell->right, i++)
-        base_list[i] = cell->key;
-    n = i;
-
-    printf("-----------------------------\n");
-    base_cell = skiplist->header->bottom;
-    while (base_cell != NULL) {
-        cell = base_cell;
-        i = 1;
-        while (cell->right->right != NULL) {
-            cell = cell->right;
-            for (; i < n && base_list[i] != cell->key; i++)
-                printf("---");
-            i++;
-            printf("%2d-", cell->key);
-        }
-        printf("\n");
-        base_cell = base_cell->bottom;
-
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-    fflush(stdout);
-
-}
-
 void skiplist_insert(SkipList *skiplist, int key) {
+    int i;
     Cell *cell, *new_cell;
     Cell *first_on_level[SKIPLIST_MAX_HEIGHT];
     Cell *pointing_key_node[SKIPLIST_MAX_HEIGHT];
-    int i;
 
     cell = skiplist->header;
     first_on_level[skiplist->height] = cell;
     pointing_key_node[skiplist->height] = cell;
-    i = skiplist->height - 1;
-    while (cell->bottom != NULL) {
+
+    for (i = skiplist->height - 1; i >= 0; i--) {
         cell = cell->bottom;
         first_on_level[i] = cell;
-        while (cell->right->key < key) {
+        while (cell->right->key < key)
             cell = cell->right;
-        }
         pointing_key_node[i] = cell;
-        i--;
     }
 
-    printf("KEY %d for INS %d\n", cell->key, key);
     if (cell->right->key == key)
         return;
 
     new_cell = malloc(sizeof(*new_cell));
-    new_cell->key = key;
-    new_cell->bottom = NULL;
-    new_cell->right = cell->right;
+    cell_init(new_cell, key, NULL, cell->right);
     cell->right = new_cell;
 
     sanitize_insertion(skiplist, first_on_level, pointing_key_node);
 }
+
 
 void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
                         Cell *pointing_key_node[]) {
@@ -160,41 +124,36 @@ void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
     insertion_height = 1;
     for (i = 0; i < skiplist->height; i++) {
         cell = first_on_level[i]->right;
-        printf("cell[%d] = %d \n", i, cell->key);
         if (cell->right != NULL && cell->right->right != NULL) {
-            if (cell->right->right->right == NULL) {
-                printf("NUULL\n\n");
-                return;
-            }
-            for (up_right = first_on_level[i+1];
-                 up_right->key < cell->key; up_right = up_right->right);
-            up_right = pointing_key_node[i+1]->right;
-            printf("up_right %x\n", up_right);
+            up_right = pointing_key_node[i + 1]->right;
             if (up_right == NULL || cell->right->right->key < up_right->key) {
                 new_cell = malloc(sizeof(*new_cell));
-                new_cell->key = cell->right->key;
-                new_cell->bottom = cell->right;
-                new_cell->right = pointing_key_node[i+1]->right;
-                pointing_key_node[i+1]->right = new_cell;
+
+                cell_init(new_cell, cell->right->key, cell->right,
+                          pointing_key_node[i + 1]->right);
+                pointing_key_node[i + 1]->right = new_cell;
+
                 insertion_height += 1;
             }
         }
     }
-    skiplist_vertical_print(skiplist);
 
-    if (insertion_height > skiplist->height) {
-        skiplist->height = insertion_height;
-        new_cell = malloc(sizeof(*new_cell));
-        new_cell->key = skiplist->header->key;
-        new_cell->right = skiplist->end;
-        new_cell->bottom = skiplist->header;
-        skiplist->header = new_cell;
-        printf("Aumentou!\n");
-    }
-
-    {printf("FINAL_SANIT\n"); fflush(stdout);}
-
+    if (insertion_height > skiplist->height)
+        skiplist_grow(skiplist);
 }
+
+
+void skiplist_grow(SkipList *skiplist) {
+    Cell *new_cell;
+
+   skiplist->height++;
+
+   new_cell = malloc(sizeof(*new_cell));
+   cell_init(new_cell, skiplist->header->key, skiplist->header,
+             skiplist->end);
+   skiplist->header = new_cell;
+}
+
 
 void skiplist_init(SkipList *skiplist) {
     skiplist->header = malloc(sizeof(*(skiplist->header)));
@@ -203,15 +162,54 @@ void skiplist_init(SkipList *skiplist) {
         printf("[-] malloc error for skiplist->(header|end).\n");
         exit(1);
     }
-    cell_init(skiplist->header, NEG_INF);
-    cell_init(skiplist->end, INF);
+    cell_init(skiplist->end, INF, NULL, NULL);
+    cell_init(skiplist->header, NEG_INF, NULL, skiplist->end);
 
     skiplist->header->right = skiplist->end;
     skiplist->height = 0;
 }
 
-void cell_init(Cell *cell, int key) {
+
+void cell_init(Cell *cell, int key, Cell *bottom, Cell *right) {
     cell->key = key;
-    cell->bottom = NULL;
-    cell->right = NULL;
+    cell->bottom = bottom;
+    cell->right = right;
+}
+
+
+void skiplist_vertical_print(SkipList *skiplist) {
+    Cell *cell, *base_cell;
+    int base_list[SKIPLIST_MAX_ENTRIES];
+    int i, n;
+
+    i = 0;
+
+    for (cell = skiplist->header; cell->bottom != NULL; cell = cell->bottom);
+
+    for (i = 0; cell->right != NULL; cell = cell->right, i++)
+        base_list[i] = cell->key;
+    n = i;
+
+    printf("[+] Dumping SkipList \n");
+    base_cell = skiplist->header->bottom;
+    while (base_cell != NULL) {
+        cell = base_cell;
+        i = 1;
+        while (cell->right->right != NULL) {
+            cell = cell->right;
+            for (; base_list[i] != cell->key; i++)
+                printf("---");
+            i++;
+            printf("%2d-", cell->key);
+        }
+        for (; i < n; i++)
+            printf("---");
+
+        printf("\n");
+        base_cell = base_cell->bottom;
+
+        printf("\n");
+    }
+    fflush(stdout);
+
 }
