@@ -25,7 +25,8 @@ Cell *skiplist_search(SkipList *skiplist, int key);
 void skiplist_insert(SkipList *skiplist, int key);
 void skiplist_init(SkipList *skiplist);
 void cell_init(Cell *cell, int key);
-void sanitize_insertion(SkipList *skiplist, Cell *first_of_each_level[]);
+void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
+                        Cell *pointing_key_node[]);
 void skiplist_vertical_print(SkipList *skiplist);
 
 int main(int argc, char *argv[]) {
@@ -84,15 +85,30 @@ Cell *skiplist_search(SkipList *skiplist, int key) {
 
 void skiplist_vertical_print(SkipList *skiplist) {
     Cell *cell, *base_cell;
+    int base_list[5000];
+    int i, n;
+
+    i = 0;
+
+    for (cell = skiplist->header; cell->bottom != NULL; cell = cell->bottom);
+
+    for (i = 0; cell->right != NULL; cell = cell->right, i++)
+        base_list[i] = cell->key;
+    n = i;
 
     printf("-----------------------------\n");
     base_cell = skiplist->header->bottom;
     while (base_cell != NULL) {
         cell = base_cell;
+        i = 1;
         while (cell->right->right != NULL) {
             cell = cell->right;
-            printf("%3d-", cell->key);
+            for (; i < n && base_list[i] != cell->key; i++)
+                printf("---");
+            i++;
+            printf("%2d-", cell->key);
         }
+        printf("\n");
         base_cell = base_cell->bottom;
 
         printf("\n");
@@ -104,19 +120,24 @@ void skiplist_vertical_print(SkipList *skiplist) {
 
 void skiplist_insert(SkipList *skiplist, int key) {
     Cell *cell, *new_cell;
-    Cell *first_of_each_level[SKIPLIST_MAX_HEIGHT];
+    Cell *first_on_level[SKIPLIST_MAX_HEIGHT];
+    Cell *pointing_key_node[SKIPLIST_MAX_HEIGHT];
     int i;
 
     cell = skiplist->header;
-    first_of_each_level[skiplist->height] = cell;
+    first_on_level[skiplist->height] = cell;
+    pointing_key_node[skiplist->height] = cell;
     i = skiplist->height - 1;
     while (cell->bottom != NULL) {
         cell = cell->bottom;
-        first_of_each_level[i--] = cell;
+        first_on_level[i] = cell;
         while (cell->right->key < key) {
             cell = cell->right;
         }
+        pointing_key_node[i] = cell;
+        i--;
     }
+
     printf("KEY %d for INS %d\n", cell->key, key);
     if (cell->right->key == key)
         return;
@@ -127,27 +148,34 @@ void skiplist_insert(SkipList *skiplist, int key) {
     new_cell->right = cell->right;
     cell->right = new_cell;
 
-    sanitize_insertion(skiplist, first_of_each_level);
+    sanitize_insertion(skiplist, first_on_level, pointing_key_node);
 }
 
-void sanitize_insertion(SkipList *skiplist, Cell *first_of_each_level[]) {
+void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
+                        Cell *pointing_key_node[]) {
     int i;
     Cell *cell, *new_cell, *up_right;
     int insertion_height;
 
     insertion_height = 1;
     for (i = 0; i < skiplist->height; i++) {
-        cell = first_of_each_level[i]->right;
-        if (cell == NULL)
-            return;
+        cell = first_on_level[i]->right;
+        printf("cell[%d] = %d \n", i, cell->key);
         if (cell->right != NULL && cell->right->right != NULL) {
-            up_right = first_of_each_level[i+1]->right;
+            if (cell->right->right->right == NULL) {
+                printf("NUULL\n\n");
+                return;
+            }
+            for (up_right = first_on_level[i+1];
+                 up_right->key < cell->key; up_right = up_right->right);
+            up_right = pointing_key_node[i+1]->right;
+            printf("up_right %x\n", up_right);
             if (up_right == NULL || cell->right->right->key < up_right->key) {
                 new_cell = malloc(sizeof(*new_cell));
                 new_cell->key = cell->right->key;
                 new_cell->bottom = cell->right;
-                new_cell->right = first_of_each_level[i+1]->right;
-                first_of_each_level[i+1]->right = new_cell;
+                new_cell->right = pointing_key_node[i+1]->right;
+                pointing_key_node[i+1]->right = new_cell;
                 insertion_height += 1;
             }
         }
