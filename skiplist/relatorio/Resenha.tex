@@ -146,12 +146,12 @@ como para árvores balanceadas de busca. Isso faz com que a escolha entre usar \
 determinada aplicação seja baseada nas dificuldades de implementação, no uso de memória, e no tamanho das 
 constantes multiplicativas dos custos de operação. 
 
-Uma \sl é determinada por um conjunto de nós, que têm chave e dados associados, e apontadores de nós de chave 
-menor a nós de chave maior.
+Uma \sl consiste em um conjunto de nós, que têm chave e dados associados, e um conjunto de apontadores 
+com origem em nós de chave menor, e destino em nós de chave maior.
 Enquanto nas listas ligadas, um nó aponta a um só outro nó, em \sls, um nó pode apontar a vários 
 outros nós de chave maior. 
 O número máximo de nós a que um nó pode apontar é definido aleatoriamente quando este é inserido na lista, e 
-é chamado de nível do nó. Na definição do nível um nó, usa-se um algoritmo que garante que, em média, a proporção 
+é chamado de nível do nó. Na definição do nível de um nó, usa-se um algoritmo que garante que, em média, a proporção 
 de nós com ao menos $i + 1$ níveis em relação àqueles com ao menos $i$ níveis, seja de $p$, uma probabilidade
 fixada na criação da \sl.
 
@@ -273,7 +273,7 @@ $$
 No exemplo da Figura~\ref{fig:skiplist}, $h(L) = 3$.
 
 \begin{lemma} \label{lemma:prob_of_node_height}
- Numa \sl $(S, p)$, a probabilidade de um nó ter altura maior ou igual a $k$ é $p^k$.
+ Numa \sl $(S, p)$, a probabilidade de um nó ter altura maior ou igual a $k$ é $p^{k - 1}$.
 
 \end{lemma}
 
@@ -286,9 +286,9 @@ Seja $H_N$ a variável aleatória que representa a altura de um nó. Temos, da d
 \Pr(H_N \geq k) &= p \Pr(H_N \geq k - 1).
 \end{align*}
 
-Como temos o caso base $\Pr(H_N \geq 1) = p$
+Como temos o caso base $\Pr(H_N \geq 1) = 1 = p^0$
 $$
-\Pr(H_N \geq k) = p^k.
+\Pr(H_N \geq k) = p^{k - 1}.
 $$
 \end{proof}
 \section{Estruturas} \label{sec:estrut}
@@ -477,10 +477,10 @@ Node *skiplist_search(SkipList *skiplist, int key) {
 
 \subsection{Inserção} \label{sec:ins}
 
-A inserção de um nó $k$ é ligeiramente mais complicada que a busca. Além de buscar a posição da chave $k$, deve
-fazer com que todos os nós que vêm logo antes em cada nível apontem para o novo nó.
+A inserção de um nó $k$ é ligeiramente mais complicada que a busca. Além de buscar a posição da chave $k$,
+deve-se fazer com que todos os nós que vêm logo antes em cada nível apontem para o novo nó.
 
-Para isso, enquanto faz a busca pela pelo maior nó de chave menor que $k$, o algoritmo mantém um vetor 
+Para isso, enquanto a busca pelo maior nó de chave menor que $k$ é feita, o algoritmo mantém um vetor 
 \verb|pointing_key_node| tal que:
 
 \begin{center}
@@ -694,9 +694,9 @@ $$
 $$
 
 As $H_i$ seguem a mesma distribuição e essas variáveis são tais que, pelo Lema~\ref{lemma:prob_of_node_height},  
- $ \Pr(H_i \geq k) = p^k$. Então
+ $ \Pr(H_i \geq k) = p^{k - 1}$. Então
 $$
-\Pr(H \geq k) \leq np^k.
+\Pr(H \geq k) \leq np^{k - 1}.
 $$
 
 Como a $H$ é discreta e toma valores positivos
@@ -715,19 +715,19 @@ Vamos analisar cada parcela calculada. Para a primeira, temos
 E para a segunda parcela, temos
 \begin{align*}
 \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} \Pr(H \geq k) 
-   &\leq \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} np^k \\
-   &= n \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} p^k \\
-   &= n p^{\lceil 2 \log_{1/p} n \rceil} \sum_{k = 0}^{\infty} p^k \\
-   &= n p^{\lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
-   &= n \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
-   &= n \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
-   &\leq n n^{-2} \frac{1}{1 - p} \\
-   &= \frac{1}{n(1 - p)}.
+   &\leq \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} np^{k - 1} \\
+   &= n \sum_{k = \lceil 2 \log_{1/p} n \rceil}^{\infty} p^{k - 1} \\
+   &= n p^{\lceil 2 \log_{1/p} n \rceil - 1} \sum_{k = 0}^{\infty} p^k \\
+   &= \frac{n}{p} p^{\lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &= \frac{n}{p} \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &= \frac{n}{p} \left( \frac{1}{p} \right)^{- \lceil 2 \log_{1/p} n \rceil} \frac{1}{1 - p} \\
+   &\leq \frac{n}{p} n^{-2} \frac{1}{1 - p} \\
+   &= \frac{1}{np(1 - p)}.
 \end{align*}
 
 Somando os resultados
 \begin{align*}
-\Exp(H) &\leq \lceil 2 \log_{1/p} n \rceil + \frac{1}{n(1 - p)}.
+\Exp(H) &\leq \lceil 2 \log_{1/p} n \rceil + \frac{1}{np(1 - p)}.
 \end{align*}
 
 Portanto
