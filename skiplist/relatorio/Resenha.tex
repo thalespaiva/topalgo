@@ -133,13 +133,10 @@ Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementaç
 
 \tableofcontents
 
-\pagebreak
-\section{\SLs}
-\FloatBarrier
 
-\subsection{Introdução}
+\section{Introdução}
 
-Introduzidas por Pugh em \cite{pugh1990skip}, \sls são uma extensão natural de listas ligadas ordenadas. 
+Introduzidas por Pugh \cite{pugh1990skip}, \sls são uma extensão natural de listas ligadas ordenadas. 
 Ambas podem ser usadas para manter um conjunto ordenado de chaves, e eventualmente seus valores associados.
 Mostramos nas próximas seções que operações de busca, inserção, e remoção em \sls são feitas em $\cO(\log n)$, 
 como para árvores balanceadas de busca. Isso faz com que a escolha entre usar \sls ou árvores balanceadas numa
@@ -150,6 +147,26 @@ Uma \sl consiste em um conjunto de nós, que têm chave e dados associados, e um
 com origem em nós de chave menor, e destino em nós de chave maior.
 Enquanto nas listas ligadas, um nó aponta a um só outro nó, em \sls, um nó pode apontar a vários 
 outros nós de chave maior. 
+
+A interface de operações básicas permitidas sobre uma lista ligada é a mesma que a interface
+para árvores de busca, com a adição da probabilidade $p$ passada em sua inicialização:
+
+\begin{itemize}
+%  \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
+  \item \textsc{Insert}($S$, $k$, $d$): Insere um nó de chave $k$, e conjunto de dados
+                                                 $d$, em $S$.
+  \item \textsc{Remove}($S$, $k$): Remove o nó de chave $k$ de $S$.
+  \item \textsc{Search}($S$, $k$): Busca o nó de chave $k$ em $S$ e o devolve.
+\end{itemize}
+
+
+
+\pagebreak
+\section{\SLs Probabilísticas}
+\FloatBarrier
+
+\subsection{Introdução}
+
 O número máximo de nós a que um nó pode apontar é definido aleatoriamente quando este é inserido na lista, e 
 é chamado de nível do nó. Na definição do nível de um nó, usa-se um algoritmo que garante que, em média, a proporção 
 de nós com ao menos $i + 1$ níveis em relação àqueles com ao menos $i$ níveis, seja de $p$, uma probabilidade
@@ -291,11 +308,12 @@ $$
 \Pr(H_N \geq k) = p^{k - 1}.
 $$
 \end{proof}
-\section{Estruturas} \label{sec:estrut}
+
+\subsection{Estruturas} \label{sec:estrut}
 
 
 
-\subsection{Nós}
+\subsubsection{Nós}
 
 Como uma \skl é composta por nós, primeiro vamos definir a estrutura \verb|Node|:
 
@@ -317,7 +335,7 @@ Os atributos de uma instância \verb|node| são tais que:
 Opcionalmente, podemos ter um atributo \verb|value|, com os valores associados a cada nó. Porém, como esse
 atributo não muda em nada os algoritmos, não o consideramos.
 
-\subsection{\SLs}
+\subsubsection{\SLs}
 Agora podemos definir a estrutura \verb|SkipList|:
 \begin{lstlisting}[language=C]
 typedef struct skiplist_t {
@@ -339,7 +357,7 @@ Abaixo, as descrições dos atributos de uma instância \verb|skiplist| que repr
 \end{itemize}
 
 
-\section{Algoritmos}
+\subsection{Algoritmos}
 
 Nesta seção, descrevemos os algoritmos para as operações de \sls. Optamos por usar a linguagem C no lugar de 
 pseudocódigo pois os algoritmos usam muitos vetores e ponteiros, então um pseudo-código teria a sintaxe muito parecida com
@@ -349,7 +367,7 @@ Pugh \cite{pugh1990skip}. Algumas ideias de estruturas e implementação vieram 
 Todo o código mostrado nas próximas seções foi testado e está funcional. Uma implementação completa pode ser vista 
 em: \url{github.com/thalespaiva/topalgo/blob/master/skiplist/skiplist.c}.
   
-\subsection{Inicialização}
+\subsubsection{Inicialização}
 
 A inicialização de um nó é bem simples. Atribuimos os valores de sua chave, sua altura, e alocamos espaço
 para os ponteiros dos seus níveis. Note que a altura não é gerada aleatoriamente nessa função.
@@ -400,7 +418,7 @@ int skiplist_get_random_node_height(SkipList *skiplist) {
 \end{lstlisting}
 
 \FloatBarrier
-\subsection{Busca}
+\subsubsection{Busca}
 
 O algoritmo de busca por um elemento genérico de chave $k$ numa \skl faz o seguinte:
 \begin{enumerate}
@@ -475,7 +493,7 @@ Node *skiplist_search(SkipList *skiplist, int key) {
 }
 \end{lstlisting} \FloatBarrier
 
-\subsection{Inserção} \label{sec:ins}
+\subsubsection{Inserção} \label{sec:ins}
 
 A inserção de um nó $k$ é ligeiramente mais complicada que a busca. Além de buscar a posição da chave $k$,
 deve-se fazer com que todos os nós que vêm logo antes em cada nível apontem para o novo nó.
@@ -574,7 +592,7 @@ void skiplist_insert(SkipList *skiplist, int key) {
 }
 \end{lstlisting}
 
-\subsection{Remoção}
+\subsubsection{Remoção}
 
 A remoção é análoga à Inserção. Para remover um nó $c$, primeiro encontra os nós que apontam a
 $c$ em cada nível. Depois, faz o nível $i$ de cada um desses nós apontar ao nó que $c$ aponta no nível $i$.
@@ -608,12 +626,12 @@ void skiplist_remove(SkipList *skiplist, int key) {
 \end{lstlisting}
 
 
-\section{Análise dos Algoritmos}
+\subsection{Análise dos Algoritmos}
 
 Iremos analisar cada um dos algoritmos apresentados. A estrutura da nossa análise é baseada em 
 \cite{mendes2008estruturas}, mas também usamos alguns argumentos do Pugh \cite{pugh1990skip}.
 
-\subsection{Inicialização}
+\subsubsection{Inicialização}
 
 \paragraph{Nó}
 \ \\ 
@@ -629,7 +647,7 @@ uma atribuição simples ou uma chamada a \verb|node_init|.
 O número esperado de operações feitas pela função \verb|skiplist_get_random_node_height| é proporcional à 
 altura esperada de um nó. Assim, essa chamada tem complexidade $\cO(1/p) = \cO(1)$.
 
-\subsection{Busca}
+\subsubsection{Busca}
 
 Como a função de busca é mais complicada, vamos primeiro definir o custo de uma busca.
 
@@ -824,7 +842,7 @@ O custo médio de busca em \sls é $\cO(\log n)$.
 $\cO(\log n)$, a soma também é $\cO(\log n)$.
 \end{proof}
 
-\subsection{Inserção}
+\subsubsection{Inserção}
 
 Vamos dividir o algoritmo de inserção em três partes:
 \begin{enumerate}[noitemsep]
@@ -915,7 +933,7 @@ Juntando os resultados das partes, temos que o custo esperado de uma inserção 
 \end{align*}
 
 
-\subsection{Remoção}
+\subsubsection{Remoção}
 
 O algoritmo da remoção é muito parecido com o da inserção. A diferença está no trecho de código da linha~\ref{line:rem_p1}
 até a linha~\ref{line:rem_p2}, copiado abaixo:
@@ -945,6 +963,160 @@ as todas as estruturas têm complexidade logarítmica, uma alteração na consta
 análise interessante que também queremos colocar é sobre a proporção de cache misses, 
 ou erros na previsão de branch, para cada estrutura. 
 
+
+\section{\SLs Determinísticas}
+
+
+
+\subsection{Estruturas}
+
+
+\subsubsection{Células}
+
+\begin{lstlisting}[caption=Estrutura das Células, language=C]
+typedef struct cell_t {
+    int key;
+    struct cell_t *bottom;
+    struct cell_t *right;
+} Cell;
+\end{lstlisting}
+
+
+\subsubsection{SkipList}
+\begin{lstlisting}[caption=Estrutura das Skip Lists determinísticas, language=C]
+typedef struct skiplist_t {
+    Cell *header;
+    Cell *end;
+    int height;
+} SkipList;
+\end{lstlisting}
+
+
+\subsubsection{Algoritmos}
+
+\subsection{Inicialização}
+
+\begin{lstlisting}[caption=Inicialização de células de Skip Lists determinísticas, language=C]
+
+void cell_init(Cell *cell, int key, Cell *bottom, Cell *right) {
+    cell->key = key;
+    cell->bottom = bottom;
+    cell->right = right;
+}
+
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Inicialização de Skip Lists determinísticas, language=C]
+void skiplist_init(SkipList *skiplist) {
+    skiplist->header = malloc(sizeof(*(skiplist->header)));
+    skiplist->end = malloc(sizeof(*(skiplist->end)));
+
+    cell_init(skiplist->end, INF, NULL, NULL);
+    cell_init(skiplist->header, NEG_INF, NULL, skiplist->end);
+
+    skiplist->header->right = skiplist->end;
+    skiplist->height = 0;
+}
+\end{lstlisting}
+
+
+\subsection{Busca}
+
+\begin{lstlisting}[caption=Algortimo de busca para Skip Lists determinísticas, language=C]
+Cell *skiplist_search(SkipList *skiplist, int key) {
+    Cell *cell;
+
+    cell = skiplist->header;
+    while (cell->bottom != NULL) {
+        cell = cell->bottom;
+        while (cell->right->key < key)
+            cell = cell->right;
+    }
+    if (cell->right->key == key)
+        return cell;
+
+    return NULL;
+}
+\end{lstlisting}
+
+\subsection{Inserção}
+
+\begin{lstlisting}[caption=Algoritmo de inserção em Skip Lists determinísticas, language=C]
+void skiplist_insert(SkipList *skiplist, int key) {
+    int i;
+    Cell *cell, *new_cell;
+    Cell *first_on_level[SKIPLIST_MAX_HEIGHT];
+    Cell *pointing_key_node[SKIPLIST_MAX_HEIGHT];
+
+    cell = skiplist->header;
+    first_on_level[skiplist->height] = cell;
+    pointing_key_node[skiplist->height] = cell;
+
+    for (i = skiplist->height - 1; i >= 0; i--) {
+        cell = cell->bottom;
+        first_on_level[i] = cell;
+        while (cell->right->key < key)
+            cell = cell->right;
+        pointing_key_node[i] = cell;
+    }
+
+    if (cell->right->key == key)
+        return;
+
+    new_cell = malloc(sizeof(*new_cell));
+    cell_init(new_cell, key, NULL, cell->right);
+    cell->right = new_cell;
+
+    sanitize_insertion(skiplist, first_on_level, pointing_key_node);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Algoritmo que resolve as violações das propriedades de Skip Lists provenientes de uma inserção, language=C]
+void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
+                        Cell *pointing_key_node[]) {
+    int i;
+    Cell *cell, *new_cell, *up_right;
+    int insertion_height;
+
+    insertion_height = 1;
+    for (i = 0; i < skiplist->height; i++) {
+        cell = first_on_level[i]->right;
+
+        if (cell->right != NULL && cell->right->right != NULL) {
+            up_right = pointing_key_node[i + 1]->right;
+
+            if (up_right == NULL || cell->right->right->key < up_right->key) {
+                new_cell = malloc(sizeof(*new_cell));
+
+                cell_init(new_cell, cell->right->key, cell->right,
+                          pointing_key_node[i + 1]->right);
+                pointing_key_node[i + 1]->right = new_cell;
+
+                insertion_height += 1;
+            }
+        }
+    }
+
+    if (insertion_height > skiplist->height)
+        skiplist_grow(skiplist);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Algoritmo que incrementa a altura de uma Skip List determinística, language=C]
+void skiplist_grow(SkipList *skiplist) {
+    Cell *new_cell;
+
+   skiplist->height++;
+
+   new_cell = malloc(sizeof(*new_cell));
+   cell_init(new_cell, skiplist->header->key, skiplist->header,
+             skiplist->end);
+   skiplist->header = new_cell;
+}
+
+\end{lstlisting}
+
+\subsection{Remoção}
 
 %----------------------------------------------------------------------------------------
 \bibliography{biblio}{}
