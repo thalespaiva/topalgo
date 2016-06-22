@@ -138,8 +138,9 @@ Seu uso é justificado pelos algoritmos mais eficientes e de fácil implementaç
 
 Introduzidas por Pugh \cite{pugh1990skip}, \sls são uma extensão natural de listas ligadas ordenadas. 
 Ambas podem ser usadas para manter um conjunto ordenado de chaves, e eventualmente seus valores associados.
-Mostramos nas próximas seções que operações de busca, inserção, e remoção em \sls são feitas em $\cO(\log n)$, 
-como para árvores balanceadas de busca. Isso faz com que a escolha entre usar \sls ou árvores balanceadas numa
+Mostramos nas próximas seções que as operações de busca, inserção, e remoção em \sls são competitivas 
+contra as respectivas para árvores balanceadas de busca.
+Isso faz com que a escolha entre usar \sls ou árvores balanceadas numa
 determinada aplicação seja baseada nas dificuldades de implementação, no uso de memória, e no tamanho das 
 constantes multiplicativas dos custos de operação. 
 
@@ -149,7 +150,7 @@ Enquanto nas listas ligadas, um nó aponta a um só outro nó, em \sls, um nó p
 outros nós de chave maior. 
 
 A interface de operações básicas permitidas sobre uma lista ligada é a mesma que a interface
-para árvores de busca, com a adição da probabilidade $p$ passada em sua inicialização:
+para árvores de busca:
 
 \begin{itemize}
 %  \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
@@ -159,38 +160,18 @@ para árvores de busca, com a adição da probabilidade $p$ passada em sua inici
   \item \textsc{Search}($S$, $k$): Busca o nó de chave $k$ em $S$ e o devolve.
 \end{itemize}
 
-
-
-\pagebreak
-\section{\SLs Probabilísticas}
-\FloatBarrier
-
-\subsection{Introdução}
-
-O número máximo de nós a que um nó pode apontar é definido aleatoriamente quando este é inserido na lista, e 
-é chamado de nível do nó. Na definição do nível de um nó, usa-se um algoritmo que garante que, em média, a proporção 
-de nós com ao menos $i + 1$ níveis em relação àqueles com ao menos $i$ níveis, seja de $p$, uma probabilidade
-fixada na criação da \sl.
-
-A interface de operações básicas permitidas sobre uma lista ligada é a mesma que a interface
-para árvores de busca, com a adição da probabilidade $p$ passada em sua inicialização:
-
-\begin{itemize}
-  \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
-  \item \textsc{Insert}($S$, $k$, $d$): Insere um nó de chave $k$, e conjunto de dados
-                                                 $d$, em $S$.
-  \item \textsc{Remove}($S$, $k$): Remove o nó de chave $k$ de $S$.
-  \item \textsc{Search}($S$, $k$): Busca o nó de chave $k$ em $S$ e o devolve.
-\end{itemize}
-
-Dentre essas operações, a mais importante é a busca. Isso pois, uma vez que o algoritmo de busca é entendido,
-as outras funções são facilmente descritas.
-
-
 A Figura~\ref{fig:skiplist} mostra um exemplo de \skl. 
 O nó de chave $-\infty$ indica o começo da lista, e o nó de chave $+\infty$ indica o final.
 Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$, forma uma lista ligada ordenada.
 
+Os dois tipos de \sls são probabilísticas e determinísticas. Primeiro Pugh apresentou 
+as probabilísticas \cite{pugh1990skip} como alternativa probabilísticas alternativas
+a árvores balanceadas. Embora de implementação simples, e de ter custo médio de operações logarítmico, 
+as operações em \sls probabilísticas têm alto custo no pior caso. Assim, Munro, Papadakis e 
+Sedgewick propõe \sls determinísticas \cite{munro1992deterministic} que, através de algoritmos de balanceamento, mantêm o custo
+logarítmico das operações, mesmo no pior caso.
+
+Nas próximas seções, apresentamos as \sls em ordem cronológica. 
 
 \begin{figure}
   \centering
@@ -235,8 +216,26 @@ Note também que cada nível de 0 a 3, representado por cada $S_0, \ldots, S_3$,
   \label{fig:skiplist}
 \end{figure}
 
+
+\pagebreak
+\section{\SLs Probabilísticas}
 \FloatBarrier
-\subsection{Definições}
+
+\subsection{Definição}
+
+Numa \sl probabilística, o número máximo de nós a que um nó pode apontar é definido 
+aleatoriamente quando este é inserido na lista, e é chamado de nível do nó.
+Na definição do nível de um nó, usa-se um algoritmo que garante que, em média, a proporção 
+de nós com ao menos $i + 1$ níveis em relação àqueles com ao menos $i$ níveis, seja de $p$, uma probabilidade
+fixada na criação da \sl.
+
+Na instanciação de uma \sls, é passada uma probabilidade $p$, usada na criação dos nós dessa \sl.
+Assim, a adicionamos a seguinte operação à interface dessa estrutura de dados:
+
+\begin{itemize}
+  \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
+\end{itemize}
+
 
 Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar fatos probabilísticos sobre
 elas.
@@ -966,10 +965,37 @@ ou erros na previsão de branch, para cada estrutura.
 
 \section{\SLs Determinísticas}
 
+\subsection{Definições}
+
+Vimos que as operações sobre \sls têm bom custo médio. Porém, apesar de raros, os piores casos de busca,
+inserção, e remoção têm custos $\cO(n)$. Como implementação alternativa de \sls que garantem
+custo logarítmico até no pior caso, Munro, Papadakis, e Sedgewick, apresentaram essencialmente duas variações 
+de \sls \cite{munro1992deterministic}:
+\begin{itemize}
+  \item 1-2 \SL;
+  \item Topo-Base 1-2-3 \SL, abreviada por TB 1-2-3.
+\end{itemize}
+
+Para cada uma das duas, propuseram implementações das listas de ponteiros horizontais usando listas
+ligadas e vetores. Apesar de usarem mais memória, discutiremos detalhadamente as implementações 
+usando listas ligadas. Isso pois são mais fáceis de entender, têm mesmo custo que as 
+implementações usando vetores. Após entendidos os algoritmos de balanceamento, não deve ser difícil
+implementar usando vetores.
+
+\subsubsection{1-2 \SL}
+
+Uma 1-2 \SL é uma \sl tal que 
+
+
+\subsubsection{TB 1-2-3 \SL}
 
 
 \subsection{Estruturas}
 
+Os dois tipos de \sls determinísticas usam as mesmas estruturas, definidas nas curtas seções a seguir.
+Note o contraste com as \sls probabilísticas. Enquanto nelas temos a estrutura nó que representa
+cada item de uma \sl, nas determinísticas temos a estrutura célula, que representa um determinado 
+nível de um dado nó.
 
 \subsubsection{Células}
 
@@ -992,9 +1018,9 @@ typedef struct skiplist_t {
 \end{lstlisting}
 
 
-\subsubsection{Algoritmos}
+\subsection{Algoritmos}
 
-\subsection{Inicialização}
+\subsubsection{Inicialização}
 
 \begin{lstlisting}[caption=Inicialização de células de Skip Lists determinísticas, language=C]
 
@@ -1020,7 +1046,7 @@ void skiplist_init(SkipList *skiplist) {
 \end{lstlisting}
 
 
-\subsection{Busca}
+\subsubsection{Busca}
 
 \begin{lstlisting}[caption=Algortimo de busca para Skip Lists determinísticas, language=C]
 Cell *skiplist_search(SkipList *skiplist, int key) {
@@ -1039,7 +1065,7 @@ Cell *skiplist_search(SkipList *skiplist, int key) {
 }
 \end{lstlisting}
 
-\subsection{Inserção}
+\subsubsection{Inserção}
 
 \begin{lstlisting}[caption=Algoritmo de inserção em Skip Lists determinísticas, language=C]
 void skiplist_insert(SkipList *skiplist, int key) {
@@ -1116,7 +1142,7 @@ void skiplist_grow(SkipList *skiplist) {
 
 \end{lstlisting}
 
-\subsection{Remoção}
+\subsubsection{Remoção}
 
 %----------------------------------------------------------------------------------------
 \bibliography{biblio}{}
