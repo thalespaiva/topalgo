@@ -19,6 +19,14 @@
 %----------------------------------------------------------------------------------------
 
 \documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage{scalefnt}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{subfig}
+
+
+
 \usepackage[brazilian]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -1511,6 +1519,132 @@ laço principal da remoção é dominado pelo custo de busca.
 multiplicativa. E o condicional da linha 60 é $\cO(1)$.
 
 Assim, o custo de remoção é $\cO(\log n) + \cO(\log n) + \cO(1) = \cO(\log n)$.
+
+
+
+\section{An\'{a}lise do tempo de diferentes algoritmos.}
+
+Na tabela 4.1, verifica-se o desempenho da estrutura \textit{skip list} em rela\c{c}\~{a}o a outras estruturas de dados. Segundo W.Pugh, tais algoritmos foram implementados em linguagem C. Maiores detalhes sobre a autoria dos respectivos algoritmos e infoma\c{c}\~{a}o adicional  da CPU podem ser vistos no referido trabalho de W. Pugh.  
+
+
+\begin{table}[htpb]
+  \centering
+  
+ \scalefont{0.7}
+   
+  \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+  
+  \hline
+          Implementa\c{c}\~{a}o & Tempo de busca & Tempo de  inser\c{c}\~{a}o & Tempo de remo\c{c}\~{a}o\\
+          \hline
+          \textit{Skip Lists} & $0.051 mseg$ & $0.065 mseg$ & $0.059 mseg$\\
+          \hline
+          \'{A}rvores AVL  n\~{a}o - recursivas & $0.046 mseg$ & $0.10 mseg$ &$0.085 mseg$\\ 
+          \hline
+           \'{A}rvores 2 - 3 recursivas & $0.054 mseg$ & $0.21 mseg$ & $0.21 mseg$\\
+           \hline
+          \'{A}rvores auto-ajust\'{a}veis \textit{Top down splaying} & $0.15 mseg$ & $0.16 mseg$ & $0.18 mseg$\\
+           \hline
+           \'{A}rvores auto-ajust\'{a}veis \textit{Bottom-up splaying} & $0.49 mseg$ & $0.51 mseg$ & $0.53 mseg$\\
+           \hline 
+  \end{tabular}
+
+ \caption{Diferentes algoritmos e respectivos tempos em \textit{milisegundos}. Retirado de [Pugh, 1990.]}
+ 
+\end{table}
+
+
+\pagebreak
+\section{ \textit{Skip list} em um ambiente concorrente.}
+
+\subsection{Contextualiza\c{c}\~{a}o}
+
+                  Em 1990, William Pugh publicou o artigo ``Concorrent maintenance of \textit{skip lists}''. Nesse trabalho, afirmou-se que os algoritmos de \textit{skip list} aplicados no ambiente programa\c{c}\~{a}o concorrente fornecem um m\'{e}todo pr\'{a}tico de acesso e atualiza\c{c}\~{a}o em uma estrutura de pesquisa com mem\'{o}ria compartilhada. Ainda segundo o referido artigo, essa afirma\c{c}\~{a}o baseou-se no fato de que as \textit{skip lists} serem aproximadamente tao r\'{a}pidas ou mais do que as \'{a}rvores balanceadas em uma ambiente n\~{a}o concorrente e, al\'{e}m disso, problemas espec\'{i}ficos desse ambiente, tais como a ``conten\c{c}\~{a}o'', n\~{a}o impactaria significativamente no desempenho das \textit{skip lists} concorrentes. Por fim, nesse trabalho, W. Pugh acreditou que o projeto de algoritmos de \'{a}rvores balanceadas em ambientes concorrentes permitiria uma alta efici\^{e}ncia em opera\c{c}\~{o}es, contudo com uma complexidade que faria sua implementa\c{c}\~{a}o ``proibitiva''.  Desta forma, desde o inicio da d\'{e}cada de 90, W.Pugh j\'{a} vislumbrava a aplica\c{c}\~{a}o da estrutura \textit{skip list }em um ambiente de programa\c{c}\~{a}o concorrente tamb\'{e}m como uma alternativa a outras estruturas de dados. Conv\'{e}m ressaltar que, no referido artigo de William Pugh, pode ser verificado apenas um pseudo-c\'{o}digo de uma opera\c{c}\~{a}o de busca de uma \textit{skip list}  em um ambiente concorrente.
+                  
+  
+Em 2015, na Austr\'{a}lia, mais precisamente na Universidade de Sidney, Vicente Gramoli publicou um trabalho entitulado ``More than you ever wanted to know about synchronization". O referido artigo faz um estudo comparativo entre cinco t\'{e}cnicas de sincroniza\c{c}\~{a}o aplicadas em 31 algoritmos referentes a 4 estruturas de dados consagradas. As implementa\c{c}\~{o}es foram feitas nas linguagens C/C++ e Java. Resumindo em poucas palavras, o artigo afirma que foi implementado um \textit{software} chamado \textit{synchrobench} com o prop\'{o}sito de auxiliar pesquisadores a avaliar novas estruturas de dados com t\'{e}cnicas de sincroniza\c{c}\~{a}o (lock, transaction e etc). Conv\'{e}m ressaltar que o foco desta resenha, no que tange a este t\'{o}pico,  visa a analisar de uma forma superficial o desempenho da estrutura \textit{skip list} no ambiente de programa\c{c}\~{a}o concorrente em compara\c{c}\~{a}o a outras estruturas de dados e, \textit{a priori}, n\~{a}o h\'{a} nenhuma inten\c{c}\~{a}o ou preocupa\c{c}\~{a}o dos autores desta resenha em explicar t\'{e}cnicas de  sincroniza\c{c}\~{a}o em ambiente concorrente. Adicionalmente, observa-se na tabela 5.1 apenas os algoritmos referentes as estruturas \textit{skip list} e \'{a}rvore bin\'{a}ria. Tem-se um total de 14 algoritmos sendo os 8 primeiros atinentes \`{a} estrutura de \'{a}rvores bin\'{a}rias e os 6 \'{u}ltimos \`{a} estrutura de \textit{skip list.} Para uma visualiza\c{c}\~{a}o completa das outras estruturas de dados e maiores detalhes, recomenda-se a verifica\c{c}\~{a}o do artigo de V. Gramoli.   
+
+\begin{table}[htpb]
+  \centering
+  
+  \scalefont{0.72}
+   
+  \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+  
+  \hline
+          $\#$&Algorithm & Synchronization & Data structures &Language\\
+          \hline
+         1&Practical binary tree & lock &  binary tree&Java \\
+          \hline
+          2&Contention-friendly tree & lock & binary tree &Java\\ 
+          \hline
+           3&Logical ordering tree & lock &binary tree &Java\\
+          \hline
+           4&Lock-free tree& read-modify-write &binary tree&Java\\
+           \hline
+           5&Fast lock-free tree& read-modify-write &binary tree &C/C++\\
+           \hline 
+           6&Speculation-friendly tree & transaction &binary tree &C/C++\\
+          \hline
+           7&Transactional red black tree&transaction&binary tree &Java\&C/C++\\ 
+          \hline
+           8&Citrus tree & read-copy-update &binary tree &C/C++\\
+           \hline
+           26& Optimistic skip list& lock &skip list &C/C++\\
+          \hline
+          27&Fraser skip list&read-modify-write&skip list &C/C++\\ 
+          \hline
+           28 & j.u.c.ConcurrentSkipListMap&read-modify-write &skip list &Java\\
+           \hline
+           29 &No hot spot skip list &read-modify-write &skip list&Java\&C/C++\\
+           \hline
+           30 &Rotating skip list &read-modify-write &skip list &C/C++\\
+           \hline 
+           31 & Elastic skip list &transaction&skip list &Java\&C/C++\\
+           \hline 
+
+         
+  \end{tabular}
+
+ \caption{Algoritmos em ambiente de sincroniza\c{c}\~{a}o. Alterado e retirado de \cite{Gramoli2015more}.}
+ 
+\end{table}
+
+\pagebreak
+            
+ \section{Avalia\c{c}\~{a}o}  
+ 
+Enfatizando-se mais uma vez, o foco da an\'{a}lise desta resenha neste espec\'{i}fico t\'{o}pico,  limita-se de forma superficial a verificar o desempenho da estrutura de dados \textit{skip list } frente a outra estrutura, no caso, a \'{a}rvore bin\'{a}ria. Destarte, observa-se em cada gr\'{a}fico o desempenho de cada estrutura de dados em um ambiente concorrente. Por exemplo, na figura 6.1, o algoritmo 2 (Contention-friendly tree) tem um desempenho de 35.000 K opera\c{c}\~{o}es por segundo (Kops/s). Em tempo, dentro desse ambiente de concorr\^{e}ncia, nos dois gr\'{a}ficos, ressalta-se que as cores azul-escuro, vermelho, verde, roxo, azul-claro e laranja, correspondem respectivamente a 1, 2, 4, 8, 16 e 32 threads implementadas para cada algoritmo.  Uma not\'{o}ria observa\c{c}\~{a}o  \'{e} o fato dos algoritmos 29(No hot spot skip list) e 30(Rotating skip list) serem as \'{u}nicas \textit{skip lists} determin\'{i}sticas e terem um desempenho superior em rela\c{c}\~{a}o aos outros algoritmos de \textit{skip lists} e \'{a}rvores bin\'{a}rias. 
+ 
+
+\begin{figure}[htpb]
+  \includegraphics[scale = 0.48]{BT.png}
+  \caption{Desempenho de \'{a}rvores bin\'{a}rias em ambiente concorrente. Retirado de \cite{Gramoli2015more}}
+\end{figure}
+
+
+
+\begin{figure}[htpb]
+  \includegraphics[scale=0.48]{SL.png}
+  \caption{Desempenho de skip lists em ambiente concorrente. Retirado de \cite{Gramoli2015more}}
+\end{figure}
+
+\pagebreak
+
+\subsection{Algumas considera\c{c}\~{o}es adicionais.} 
+
+\begin{enumerate}
+
+\item Em geral, no ambiente de programa\c{c}\~{a}o concorrente, os algoritmos de \textit{skip list } tem um bom desempenho em rela\c{c}\~{a}o as \'{a}rvores bin\'{a}rias;
+\item De acordo com o referido artigo, a linha base (cor preta) indica o desempenho ``sem sincroniza\c{c}\~{a}o" dos algoritmos. Em primeira an\'{a}lise, observa-se que, nessa configura\c{c}\~{a}o sem sincronismo, os desempenhos em ``ops/s" dos algoritmos de \textit{skip list } s\~{a}o relativamente inferiores aos algoritmos das \'{a}rvores bin\'{a}rias. Entretanto, como visto anteriormente, na configura\c{c}\~{a}o de programa\c{c}\~{a}o concorrente, esse cen\'{a}rio muda e;
+\item De acordo com \cite{Gramoli2015more}, em alguns poucos casos, alguns algoritmos de estrutura de dados  tem um desempenho relativamente baixo devido algumas sutilezas oriundas do tipo de linguagem (Java, C++, C) que foi utilizada aliada a uma determinada t\'{e}cnica de sincroniza\c{c}\~{a}o. Tais detalhamentos podem ser vistos nos itens 2.3 (\textbf{\textit{Language and memory management}}) e 4.4 (\textbf{\textit{Language effects}}) do referido artigo. 
+ 
+\end{enumerate}
+
+\section{Conclus\~{a}o}
+
+As \textit{skip lists} probabil\'{i}sticas surgiram como uma alternativa as outras estruturas de dados balanceadas, tais como as \'{a}rvores bin\'{a}rias, contudo o fato mais preponderante \'{e} a relativa simplicidade da implementa\c{c}\~{a}o das \textit{skip lists} com rela\c{c}\~{a}o as outras estruturas. Em um pior caso, as skip lists podem ser tornar estruturas invi\'{a}veis. Por exemplo, caso a opera\c{c}\~{a}o de inser\c{c}\~{a}o de muitos elementos ou itens seja executada continuamente, um problema de mem\'{o}ria poder\'{a} ocorrer. Al\'{e}m disso, se todos os $n$ itens, durante esse processo de inser\c{c}\~{a}o, atingirem a altura m\'{a}xima $h$ da \textit{skip list}, ou mesmo a altura $h-1$,  a complexidade das opera\c{c}\~{o}es mudam de $O(logn)$ para $O(n + h)$. Desta forma, as skip lists determin\'{i}sticas foram criadas como uma garantia para se manter o custo das opera\c{c}\~{o}es de busca, inser\c{c}\~{a}o e remo\c{c}\~{a}o em tempo logar\'{i}tmico. 
+Adicionalmente, de acordo com \cite{munro1992deterministic}, uma das raz\~{o}es da exist\^{e}ncia das \textit{skip lists} determin\'{i}sticas seria que a \textbf{redund\^{a}ncia de compara\c{c}\~{o}es} entre elementos, durante um processo de busca ou pesquisa e, muitos ponteiros, tem a vantagem de ``paralelizar uma estrutura" . Por fim, foi visto que as \textit{skip lists} podem ter um \'{o}timo desempenho em um ambiente de programa\c{c}\~{a}o concorrente em rela\c{c}\~{a}o as outras estruturas.   
 
 %----------------------------------------------------------------------------------------
 \bibliography{biblio}{}
