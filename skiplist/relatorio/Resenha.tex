@@ -53,6 +53,7 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{calc}
 \usetikzlibrary{chains}
+\usetikzlibrary{shapes.multipart}
 
 \newcommand{\snode}[2]{\node(#1)[item]{\ensuremath{#2}}}
 \newcommand{\inode}[2]{\node(#1)[item, dashed]{\ensuremath{#2}}}
@@ -217,6 +218,54 @@ Nas próximas seções, apresentamos as \sls em ordem cronológica.
 \end{figure}
 
 
+Estamos prontos para dar uma definição mais precisa de \sls. A definição apresentada não é 
+diretamente implementável em computadores, pois usa conjuntos infinitos. Foi
+parcialmente baseada na dissertação de mestrado de Mendes \cite{mendes2008estruturas}.
+
+\begin{definition}
+Uma \textbf{\emph{Skip List}} de elementos inteiros $c_1, c_2, \ldots, c_n$, 
+em ordem crescente é um conjunto S tal que:
+
+\begin{itemize}
+
+\item $S = \{S_0, S_1, S_2, \ldots \}$ são os níveis da \sl.
+
+\item $S_0 = \langle -\infty, c_1, c_2, \ldots, c_n, \infty \rangle.$
+
+\item $\{-\infty, \infty\} \subseteq S_i \ $ para todo $i$.
+
+\item Cada $S_i$, para $i \geq 1$, é um subconjunto ordenado do conjunto $S_{i-1}$, tal que:
+$$
+c \notin S_i \Rightarrow c_i \notin S_{i + 1}.
+$$
+
+\end{itemize}
+
+\end{definition}
+
+
+\begin{definition}
+
+A \textbf{altura de um nó} $c$ de uma \sl $S$, denotada por $h(c)$ é o número de conjuntos de $S$ 
+a que $c$ pertence.
+
+\end{definition}
+
+No exemplo da Figura~\ref{fig:skiplist}, $h(16) = 2$.
+
+\begin{definition}
+
+A \textbf{altura de uma de uma \sl} $S$, denotada por $h(S)$ é a maior altura de seus elementos finitos.
+Simbolicamente
+$$
+h(S) = \max \{ h(c) : c \in S_0, c \notin \{ -\infty, \infty \} \}.
+$$
+
+\end{definition}
+
+No exemplo da Figura~\ref{fig:skiplist}, $h(S) = 3$.
+
+
 \pagebreak
 \section{\SLs Probabilísticas}
 \FloatBarrier
@@ -236,27 +285,18 @@ Assim, a adicionamos a seguinte operação à interface dessa estrutura de dados
   \item \textsc{Init}($p$): Cria uma \skl com parâmetro $p$ vazia e a devolve.
 \end{itemize}
 
-
-Estamos prontos para dar uma definição mais precisa de \sls , que nos permite provar fatos probabilísticos sobre
-elas.
-A definição apresentada não é diretamente implementável em computadores, pois usa conjuntos infinitos. Foi
-parcialmente baseada na dissertação de mestrado de Mendes \cite{mendes2008estruturas}.
-Mostramos
-como implementar a definição abaixo na Seção~\ref{sec:estrut}.
-
+A definição formal de \sl probabilística é dada a seguir.
 
 \begin{definition}
-Uma \textbf{\emph{Skip List}} de elementos inteiros $c_1, c_2, \ldots, c_n$, em ordem crescente é uma dupla $\left( S, p \right)$ tal que:
+Uma \textbf{\emph{Skip List} probabilística} de elementos inteiros $c_1, c_2, \ldots, c_n$, 
+em ordem crescente é um par $\left( S, p \right)$ tal que:
 
 \begin{itemize}
 
-\item $S = \{S_0, S_1, S_2, \ldots \}$ são os níveis da \sl.
+\item $S = \{S_0, S_1, S_2, \ldots \}$ é uma \sl.
 
-\item $S_0 = \langle -\infty, c_1, c_2, \ldots, c_n, \infty \rangle.$
-
-\item $\{-\infty, \infty\} \subseteq S_i \ $ para todo $i$.
-
-\item Cada $S_i$, para $i \geq 1$, é um subconjunto ordenado do conjunto $S_{i-1}$, construído de forma que:
+\item Cada $S_i$, para $i \geq 1$, é um subconjunto ordenado do conjunto $S_{i-1}$, 
+construído de forma que:
   \begin{enumerate}[noitemsep]
     \item $\Pr(c \in S_i | c \in S_{i-1} ,\  c \notin \{-\infty, \infty\}) = p$.
     \item  $\Pr(c \in S_i | c \notin S_{i-1}, \ c \notin \{-\infty, \infty\}) = 0$.
@@ -267,27 +307,8 @@ Uma \textbf{\emph{Skip List}} de elementos inteiros $c_1, c_2, \ldots, c_n$, em 
 \end{definition}
 
 
-\begin{definition}
-
-A \textbf{altura de um nó} $c$ de uma \sl $( S, p )$, denotada por $h(c)$ é o número de conjuntos de $S$ a que $c$ pertence.
-
-\end{definition}
-
-No exemplo da Figura~\ref{fig:skiplist}, $h(16) = 2$.
-
-
-\begin{definition}
-
-A \textbf{altura de uma de uma \sl} $L = ( S, p )$, denotada por $h(L)$ é a maior altura de seus elementos finitos.
-Simbolicamente
-$$
-h(L) = \max \{ h(c) : c \in S_0, c \notin \{ -\infty, \infty \} \}.
-$$
-
-\end{definition}
-
-No exemplo da Figura~\ref{fig:skiplist}, $h(L) = 3$.
-
+A seguir, provamos um lema simples que nos ajuda a demonstrar fatos interessantes sobre os custos das
+operações em \sls probabilísticas.
 \begin{lemma} \label{lemma:prob_of_node_height}
  Numa \sl $(S, p)$, a probabilidade de um nó ter altura maior ou igual a $k$ é $p^{k - 1}$.
 
@@ -627,8 +648,9 @@ void skiplist_remove(SkipList *skiplist, int key) {
 
 \subsection{Análise dos Algoritmos}
 
-Iremos analisar cada um dos algoritmos apresentados. A estrutura da nossa análise é baseada em 
-\cite{mendes2008estruturas}, mas também usamos alguns argumentos do Pugh \cite{pugh1990skip}.
+Iremos analisar cada um dos algoritmos apresentados. A estrutura da nossa análise é baseada na tese de 
+mestrado de Mendes
+\cite{mendes2008estruturas}, e também usamos alguns argumentos de Pugh \cite{pugh1990skip}.
 
 \subsubsection{Inicialização}
 
@@ -954,17 +976,8 @@ R &\leq I + c( \log n + 1) \\
 \Exp(R) &\leq \Exp(I) + c( \log n + 1) = \cO(\log n) + \cO(\log n) = O(\log n).
 \end{align*}
 
-\section{Próxima Entrega}
-
-Para a próxima entrega, vamos incluir a análise de \sls determinísticas. Depois da análise teórica, queremos
-comparar empiricamente o custo das \sls com o de árvores balanceadas. Essa comparação será importante pois, como
-as todas as estruturas têm complexidade logarítmica, uma alteração na constante faz bastante diferença. Uma
-análise interessante que também queremos colocar é sobre a proporção de cache misses, 
-ou erros na previsão de branch, para cada estrutura. 
-
 
 \section{\SLs Determinísticas}
-
 \subsection{Definições}
 
 Vimos que as operações sobre \sls têm bom custo médio. Porém, apesar de raros, os piores casos de busca,
@@ -977,17 +990,92 @@ de \sls \cite{munro1992deterministic}:
 \end{itemize}
 
 Para cada uma das duas, propuseram implementações das listas de ponteiros horizontais usando listas
-ligadas e vetores. Apesar de usarem mais memória, discutiremos detalhadamente as implementações 
-usando listas ligadas. Isso pois são mais fáceis de entender, têm mesmo custo que as 
-implementações usando vetores. Após entendidos os algoritmos de balanceamento, não deve ser difícil
-implementar usando vetores.
-
-\subsubsection{1-2 \SL}
-
-Uma 1-2 \SL é uma \sl tal que 
+ligadas e vetores. Ambas 
+usam estruturas de dados parecidas, e, apesar de terem algoritmos simples para a inserção, os 
+algoritmos de remoção são bem complicados, lembrando algoritmos de balanceamento de árvores balanceadas.
 
 
-\subsubsection{TB 1-2-3 \SL}
+Neste texto, tratamos detalhadamente apenas das Topo Base 1-2-3 \SLs, por serem as mais comumente
+implementadas, e ter algoritmo de balanceamento mais simples do que as 1-2 \SLs.
+O motivo de as TB 1-2-3 serem mais comummente implementadas, é o fato de que
+o balanceamento pode ser feito de cima para baixo, daí o nome de Topo-Base. Por ter uma implementação
+mais direta, escrevemos os algoritmos usando listas ligadas para armazenar os ponteiros horizontais 
+de cada nó,  pois os algoritmos ficam mais simples.
+
+Uma TB 1-2-3 \SL é uma \sl em que, entre quaisquer nós de altura maior ou igual a $h$ consecutivos, 
+há no mínimo 1, e no máximo 3, nós de altura $h - 1$. Convencionamos que os níveis dos nós 
+sentinela, $-\infty$ e $+\infty$,
+são de 1 a mais do que a altura da \sl. Um exemplo pode ser visto na Figura~\ref{fig:skiplist_det}.
+
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=5mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=4mm}
+      ]
+      \matrix[row sep=-0.2mm, column sep=2mm]{
+        \nodelabel{3}; & \snode{3neginf}{-\infty}; & & & & & & & & & & & & & & \snode{3inf}{+\infty}; \\ 
+        \nodelabel{2}; & \snode{2neginf}{-\infty}; & & & & & & & \snode{2g}{64}; & & & & & & & \snode{2inf}{+\infty}; \\ 
+        \nodelabel{1}; & \snode{1neginf}{-\infty}; & & & \snode{1c}{29}; & & \snode{1e}{51}; & & \snode{1g}{64}; & & & \snode{1j}{81}; & & & & \snode{1inf}{+\infty}; \\ 
+        \nodelabel{0}; & \snode{0neginf}{-\infty}; & \snode{0a}{24}; & \snode{0b}{26}; & \snode{0c}{29}; & \snode{0d}{32}; & \snode{0e}{51}; & \snode{0f}{62}; & \snode{0g}{64}; & \snode{0h}{75}; & \snode{0i}{79}; & \snode{0j}{81}; & \snode{0k}{90}; & \snode{0l}{91}; & \snode{0m}{94}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0neginf);\chainin(0a) [join=by {->}];\chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}];\chainin(0d) [join=by {->}];\chainin(0e) [join=by {->}];\chainin(0f) [join=by {->}];\chainin(0g) [join=by {->}];\chainin(0h) [join=by {->}];\chainin(0i) [join=by {->}];\chainin(0j) [join=by {->}];\chainin(0k) [join=by {->}];\chainin(0l) [join=by {->}];\chainin(0m) [join=by {->}];\chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1neginf);\chainin(1c) [join=by {->}];\chainin(1e) [join=by {->}];\chainin(1g) [join=by {->}];\chainin(1j) [join=by {->}];\chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(2neginf);\chainin(2g) [join=by {->}];\chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(3neginf);\chainin(3inf) [join=by {->}]; 
+      }
+
+    \end{tikzpicture}
+  \caption{Exemplo de TB 1-2-3 \SL}
+  \label{fig:skiplist_det}
+\end{figure}
+
+
+A seguir, damos uma definição formal das TB 1-2-3 \sls.
+
+\begin{definition}
+Uma \textbf{TB 1-2-3 \emph{Skip List} determinística} de elementos inteiros $c_1, c_2, \ldots, c_n$, 
+em ordem crescente é um conjunto S tal que:
+
+\begin{itemize}
+
+\item $S = \{S_0, S_1, S_2, \ldots \}$ é uma \sl.
+
+\item $h(-\infty) = h(+\infty) = h(S) + 1$, por definição.
+
+\item Para todo $S_i$, com $i \geq 1$, se $c$ e $d$ são elementos consecutivos de $S_i$, então vale que:
+$$
+1 \leq \ \bigm| \{ x \in S_{i -1} : c < x < d \}  \bigm| \ \leq 3.
+$$
+
+\end{itemize}
+
+\end{definition}
+
+Como consequência da definição, temos o seguinte lema sobre a altura de uma 1-2 \sl.
+
+\begin{lemma}
+A altura de uma TD 1-2-3 \sl é $\cO(log n)$.
+\end{lemma}
+
+\begin{proof}
+É fácil ver que altura máxima é atingida quando, para cada dois elementos 
+consecutivos $c$ e $d$, do nível $S_i$ ($i \geq 1$), existir apenas 1 elemento $x$ de $S_{i-1}$ 
+tal que $c < x < d$. Assim, para $ i \geq 1 $, temos que:
+$$
+|S_i| \leq \frac{|S_{i-1}|}{2} \ \ \overset{|S_0| = n}\implies \ \ |S_i| \leq \frac{n}{2^i}.
+$$
+
+Se $h$ for a altura da \sl, então $1 \leq |S_{k-1}| \leq 2$. Assim, temos que:
+$$
+1 \leq \frac{n}{2^h} \Rightarrow 2^h \leq n \Rightarrow h \leq \log_2(n) \Rightarrow h = \cO(\log n). 
+$$
+\end{proof}
 
 
 \subsection{Estruturas}
@@ -1002,25 +1090,71 @@ nível de um dado nó.
 \begin{lstlisting}[caption=Estrutura das Células, language=C]
 typedef struct cell_t {
     int key;
-    struct cell_t *bottom;
+    struct cell_t *down;
     struct cell_t *right;
 } Cell;
 \end{lstlisting}
 
+Apesar de parecer uma estrutura familiar, comparando com as \sls probabilísticas, há uma diferença
+semântica fundamental. O ponteiro \verb|down| da célula \verb|cell| do $i$-ésimo nível de um nó,
+aponta para a primeira célula no nível $i - 1$ que é pulada por um ponteiro até \verb|cell|.
+
+A Figura~\ref{fig:cell_structure} mostra a representação de uma \sl usando esses ponteiros.
 
 \subsubsection{SkipList}
 \begin{lstlisting}[caption=Estrutura das Skip Lists determinísticas, language=C]
 typedef struct skiplist_t {
     Cell *header;
     Cell *end;
-    int height;
+    Cell *bottom;
 } SkipList;
 \end{lstlisting}
 
 
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=15mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=6mm}
+      ]
+      \matrix[row sep=5mm, column sep=5mm]{
+        \snode{header}{header}; & & & & & \snode{2inf}{+\infty}; \\ 
+        \snode{1b}{21}; & & & \snode{1mk}{MaxKey}; & & \snode{1inf}{+\infty}; \\ 
+        \snode{0a}{20}; & \snode{0b}{21}; & \snode{0c}{26}; & \snode{0d}{27}; & \snode{0mk}{MaxKey}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0a); \chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}]; \chainin(0d) [join=by {->}]; \chainin(0mk) [join=by {->}];  \chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1b); \chainin(1mk) [join=by {->}]; \chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(header); \chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(header); \chainin(1b) [join=by {->}]; \chainin(0a) [join=by {->}]; 
+        [start chain] \chainin(1mk)  ; \chainin(0d) [join=by {->}]; 
+      }
+      
+    \end{tikzpicture}
+  \caption{Exemplo do uso da estrutura \texttt{cell}}
+  \label{fig:cell_structure}
+\end{figure}
+
+
+
+
 \subsection{Algoritmos}
 
+Os algoritmos mostrados nesta seção são baseados no trabalho de Munro et al.
+sobre \sls determinísticas \cite{munro1992deterministic}, e também na tese de doutorado de Papadakis
+\cite{papadakis1993skip}. Neste artigo, os autores descrevem 
+em alto nível os algoritmos de inserção e remoção.
+Pode-se ver implementações completas em 
+
+
 \subsubsection{Inicialização}
+
+A inicialização de células é bem simples. Passa-se um ponteiro de célula, uma chave, e ponteiros para
+as células de baixo e à direita.
 
 \begin{lstlisting}[caption=Inicialização de células de Skip Lists determinísticas, language=C]
 
@@ -1032,117 +1166,351 @@ void cell_init(Cell *cell, int key, Cell *bottom, Cell *right) {
 
 \end{lstlisting}
 
+A inicialização de \sls é simples, mas deve-se atentar para os nós sentinelas, e os valores de 
+seus atributos.
+
 \begin{lstlisting}[caption=Inicialização de Skip Lists determinísticas, language=C]
+#define INF INT_MAX
+
 void skiplist_init(SkipList *skiplist) {
     skiplist->header = malloc(sizeof(*(skiplist->header)));
     skiplist->end = malloc(sizeof(*(skiplist->end)));
+    skiplist->bottom = malloc(sizeof(*(skiplist->bottom)));
 
-    cell_init(skiplist->end, INF, NULL, NULL);
-    cell_init(skiplist->header, NEG_INF, NULL, skiplist->end);
-
-    skiplist->header->right = skiplist->end;
-    skiplist->height = 0;
+    cell_init(skiplist->bottom, INF, skiplist->bottom, skiplist->bottom);
+    cell_init(skiplist->end, INF, NULL, skiplist->end);
+    cell_init(skiplist->header, INF - 1, skiplist->bottom, skiplist->end);
 }
 \end{lstlisting}
 
-
 \subsubsection{Busca}
+
+O algoritmo de busca em \sls determinísticas é essencialmente o mesmo daquele para as probabilísticas, 
+percorrendo a lista através dos ponteiros \verb|right| e \verb|bottom|.
 
 \begin{lstlisting}[caption=Algortimo de busca para Skip Lists determinísticas, language=C]
 Cell *skiplist_search(SkipList *skiplist, int key) {
     Cell *cell;
 
     cell = skiplist->header;
-    while (cell->bottom != NULL) {
-        cell = cell->bottom;
-        while (cell->right->key < key)
+
+    skiplist->bottom->key = key;
+    while (cell->key != key) {
+        if (key < cell->key)
+            cell = cell->down;
+        else
             cell = cell->right;
     }
-    if (cell->right->key == key)
-        return cell;
-
-    return NULL;
+    if (cell == skiplist->bottom)
+        return NULL;
+    return cell;
 }
 \end{lstlisting}
 
 \subsubsection{Inserção}
 
-\begin{lstlisting}[caption=Algoritmo de inserção em Skip Lists determinísticas, language=C]
+A inserção em \sls determinísticas é feita de modo bem elegante. Uma inserção 
+começa-se na cabeça da \sl, em seu último nível. Primeiro, faz-se uma busca, naquele nível, pela chave do elemento
+a ser inserido. Com isso, descobre-se qual o intervalo que conterá o novo item. Se, em seu nível abaixo,
+esse intervalo contiver 3 elementos seguidos de mesmo nível, o do meio é aumentado em 1 nível.
+Esse procedimento é feito a cada nível, até atingir a base da \sl. Por fim, pode-se garantidamente
+inserir o elemento com altura 1.
+
+A Figura~\ref{fig:det_skiplist_ins} exemplifica a inserção do elemento 31. Os passos são os seguintes:
+\begin{itemize}
+  \item Na iteração do nível 3, vê-se que não há três nós de mesma altura no nível 2. Assim, pode-se descer
+  sem problemas.
+  \item Na iteração do nível 2, vê-se que o intervalo em que estará o 31 é o de $-\infty$ a 64. Como este
+  intervalo têm três elementos de mesma altura, no nível 1, aumenta-se o nível de 29.
+  \item Na iteração do nível 1, vê-se que o intervalo em que estará o 31 é o de 29 a 37. Como não
+  há três elementos de mesma altura no nível 0, pode-se descer ao nível 0.
+  \item Na iteração do nível 0, coloca-se o 31 após o 29, com altura 1.
+\end{itemize}
+
+O algoritmo de inserção é dado a seguir. Pode-se ver como os nós sentinela, ao invés de ponteiros
+nulos, ajudam a eliminar condicionais antes de fazer buscas de ponteiros, deixando o código mais limpo.
+
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=5mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=5mm}
+      ]
+      \matrix[row sep=-0.2mm, column sep=2mm]{
+        \nodelabel{3}; & \snode{3neginf}{-\infty}; & & & & & & & & & & & & & & & \snode{3inf}{+\infty}; \\ 
+        \nodelabel{2}; & \snode{2neginf}{-\infty}; & & & & & & & & & & \snode{2j}{64}; & & & & & \snode{2inf}{+\infty}; \\ 
+        \nodelabel{1}; & \snode{1neginf}{-\infty}; & & \snode{1b}{21}; & & \snode{1d}{29}; & & & & \snode{1h}{51}; & & \snode{1j}{64}; & & & \snode{1m}{81}; & & \snode{1inf}{+\infty}; \\ 
+        \nodelabel{0}; & \snode{0neginf}{-\infty}; & \snode{0a}{20}; & \snode{0b}{21}; & \snode{0c}{26}; & \snode{0d}{29}; & \snode{0e}{32}; & \snode{0f}{37}; & \snode{0g}{48}; & \snode{0h}{51}; & \snode{0i}{62}; & \snode{0j}{64}; & \snode{0k}{75}; & \snode{0l}{79}; & \snode{0m}{81}; & \snode{0n}{90}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0neginf);\chainin(0a) [join=by {->}];\chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}];\chainin(0d) [join=by {->}];\chainin(0e) [join=by {->}];\chainin(0f) [join=by {->}];\chainin(0g) [join=by {->}];\chainin(0h) [join=by {->}];\chainin(0i) [join=by {->}];\chainin(0j) [join=by {->}];\chainin(0k) [join=by {->}];\chainin(0l) [join=by {->}];\chainin(0m) [join=by {->}];\chainin(0n) [join=by {->}];\chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1neginf);\chainin(1b) [join=by {->}];\chainin(1d) [join=by {->}];\chainin(1h) [join=by {->}];\chainin(1j) [join=by {->}];\chainin(1m) [join=by {->}];\chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(2neginf);\chainin(2j) [join=by {->}];\chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(3neginf);\chainin(3inf) [join=by {->}]; 
+      }
+
+    \end{tikzpicture}
+
+
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=5mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=5mm}
+      ]
+      \matrix[row sep=-0.2mm, column sep=2mm]{
+        \nodelabel{3}; & \snode{3neginf}{-\infty}; & & & & & & & & & & & & & & & & \snode{3inf}{+\infty}; \\ 
+        \nodelabel{2}; & \snode{2neginf}{-\infty}; & & & & \snode{2d}{29}; & & & & & & & \snode{2k}{64}; & & & & & \snode{2inf}{+\infty}; \\ 
+        \nodelabel{1}; & \snode{1neginf}{-\infty}; & & \snode{1b}{21}; & & \snode{1d}{29}; & & & \snode{1g}{37}; & & \snode{1i}{51}; & & \snode{1k}{64}; & & & \snode{1n}{81}; & & \snode{1inf}{+\infty}; \\ 
+        \nodelabel{0}; & \snode{0neginf}{-\infty}; & \snode{0a}{20}; & \snode{0b}{21}; & \snode{0c}{26}; & \snode{0d}{29}; & \snode{0e}{31}; & \snode{0f}{32}; & \snode{0g}{37}; & \snode{0h}{48}; & \snode{0i}{51}; & \snode{0j}{62}; & \snode{0k}{64}; & \snode{0l}{75}; & \snode{0m}{79}; & \snode{0n}{81}; & \snode{0o}{90}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0neginf);\chainin(0a) [join=by {->}];\chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}];\chainin(0d) [join=by {->}];\chainin(0e) [join=by {->}];\chainin(0f) [join=by {->}];\chainin(0g) [join=by {->}];\chainin(0h) [join=by {->}];\chainin(0i) [join=by {->}];\chainin(0j) [join=by {->}];\chainin(0k) [join=by {->}];\chainin(0l) [join=by {->}];\chainin(0m) [join=by {->}];\chainin(0n) [join=by {->}];\chainin(0o) [join=by {->}];\chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1neginf);\chainin(1b) [join=by {->}];\chainin(1d) [join=by {->}];\chainin(1g) [join=by {->}];\chainin(1i) [join=by {->}];\chainin(1k) [join=by {->}];\chainin(1n) [join=by {->}];\chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(2neginf);\chainin(2d) [join=by {->}];\chainin(2k) [join=by {->}];\chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(3neginf);\chainin(3inf) [join=by {->}]; 
+      }
+
+
+    \end{tikzpicture}
+
+
+  \caption{Inserção do elemento 31 num TB 1-2-3 skip list.}
+  \label{fig:det_skiplist_ins}
+\end{figure}
+
+
+\begin{lstlisting}[caption=Algoritmo de inserção em TB 1-2-3 skip list, language=C]
 void skiplist_insert(SkipList *skiplist, int key) {
-    int i;
-    Cell *cell, *new_cell;
-    Cell *first_on_level[SKIPLIST_MAX_HEIGHT];
-    Cell *pointing_key_node[SKIPLIST_MAX_HEIGHT];
+    int gap_last_key;
+    Cell *cell, *new;
+
+    skiplist->bottom->key = key;
 
     cell = skiplist->header;
-    first_on_level[skiplist->height] = cell;
-    pointing_key_node[skiplist->height] = cell;
+    while (cell != skiplist->bottom) {
 
-    for (i = skiplist->height - 1; i >= 0; i--) {
-        cell = cell->bottom;
-        first_on_level[i] = cell;
-        while (cell->right->key < key)
+        while (key > cell->key)
             cell = cell->right;
-        pointing_key_node[i] = cell;
-    }
 
-    if (cell->right->key == key)
-        return;
+        if ((cell->down == skiplist->bottom) && (cell->key == key))
+            return;
 
-    new_cell = malloc(sizeof(*new_cell));
-    cell_init(new_cell, key, NULL, cell->right);
-    cell->right = new_cell;
-
-    sanitize_insertion(skiplist, first_on_level, pointing_key_node);
-}
-\end{lstlisting}
-
-\begin{lstlisting}[caption=Algoritmo que resolve as violações das propriedades de Skip Lists provenientes de uma inserção, language=C]
-void sanitize_insertion(SkipList *skiplist, Cell *first_on_level[],
-                        Cell *pointing_key_node[]) {
-    int i;
-    Cell *cell, *new_cell, *up_right;
-    int insertion_height;
-
-    insertion_height = 1;
-    for (i = 0; i < skiplist->height; i++) {
-        cell = first_on_level[i]->right;
-
-        if (cell->right != NULL && cell->right->right != NULL) {
-            up_right = pointing_key_node[i + 1]->right;
-
-            if (up_right == NULL || cell->right->right->key < up_right->key) {
-                new_cell = malloc(sizeof(*new_cell));
-
-                cell_init(new_cell, cell->right->key, cell->right,
-                          pointing_key_node[i + 1]->right);
-                pointing_key_node[i + 1]->right = new_cell;
-
-                insertion_height += 1;
-            }
+        gap_last_key = cell->down->right->right->right->key;
+        if (cell->down == skiplist->bottom || cell->key == gap_last_key) {
+            new = malloc(sizeof(*new));
+            cell_init(new, cell->key, cell->down->right->right, cell->right);
+            cell->right = new;
+            cell->key = cell->down->right->key;
         }
+
+        cell = cell->down;
     }
 
-    if (insertion_height > skiplist->height)
+    if (skiplist->header->right != skiplist->end)
         skiplist_grow(skiplist);
 }
-\end{lstlisting}
 
-\begin{lstlisting}[caption=Algoritmo que incrementa a altura de uma Skip List determinística, language=C]
 void skiplist_grow(SkipList *skiplist) {
     Cell *new_cell;
 
-   skiplist->height++;
-
    new_cell = malloc(sizeof(*new_cell));
-   cell_init(new_cell, skiplist->header->key, skiplist->header,
-             skiplist->end);
+   cell_init(new_cell, INF - 1, skiplist->header, skiplist->end);
    skiplist->header = new_cell;
 }
-
 \end{lstlisting}
 
+
 \subsubsection{Remoção}
+
+A remoção em \sls determinísticas é mais complicada, como em árvores balanceadas. 
+A ideia é similar à inserção: a cada nível, observar o nível abaixo fazendo, se necessário, algum 
+balanceamento antes de descer um nível.
+
+A remoção de um elemento começa na cabeça da list, no último nível \textbf{da skip list}. Faz-se uma busca nesse nível 
+pelo intervalo em que está o elemento a ser removido. Verifica quantos elementos seguidos de mesma altura
+há no nível abaixo. Se há 2 ou 3, é seguro descer, pois a remoção será segura. Se há 1, faz-se o 
+balanceamento através da união com um intervalo vizinho, ou troca de altura com um elemento de
+intervalo vizinho.
+
+
+Considere a remoção representada na Figura~\ref{fig:det_skiplist_rem}.
+
+\begin{itemize}
+  \item Na iteração do nível 2, vê-se que 71 está entre $-\infty$ e  75. Também observa-se que, no nível
+  1, há dois elementos de mesma altura seguidos, nesse intervalo. Então a descida é segura.
+  \item Na iteração do nível 1, vê-se que 71 está entre 47 e 75. Nesse intervalo, há somente 1 elemento
+  no nível 0. Assim, é preciso balancear para que a remoção seja segura. Como esse intervalo tem um 
+  intervalo vizinho com dois elementos, toma-se o elemento mais à direita, 25, para trocar de nível com
+  o 47. Assim, o novo intervalo, de 25 a 75 é seguro, e pode-se descer.
+  \item Na iteração do nível 0, o elemento 71 pode ser removido com segurança.
+
+\end{itemize}
+
+\begin{figure}
+  \centering
+    %extracted from https://github.com/mhyee/latex-examples/
+    \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=5mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=4mm}
+      ]
+      \matrix[row sep=-0.2mm, column sep=2mm]{
+        \nodelabel{3}; & \snode{3neginf}{-\infty}; & & & & & & & & & & & & \snode{3inf}{+\infty}; \\ 
+        \nodelabel{2}; & \snode{2neginf}{-\infty}; & & & & & & & & \snode{2h}{75}; & & & & \snode{2inf}{+\infty}; \\ 
+        \nodelabel{1}; & \snode{1neginf}{-\infty}; & & & \snode{1c}{18}; & & & \snode{1f}{47}; & & \snode{1h}{75}; & & \snode{1j}{78}; & & \snode{1inf}{+\infty}; \\ 
+        \nodelabel{0}; & \snode{0neginf}{-\infty}; & \snode{0a}{ 7}; & \snode{0b}{ 8}; & \snode{0c}{18}; & \snode{0d}{23}; & \snode{0e}{25}; & \snode{0f}{47}; & \snode{0g}{71}; & \snode{0h}{75}; & \snode{0i}{77}; & \snode{0j}{78}; & \snode{0k}{95}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0neginf);\chainin(0a) [join=by {->}];\chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}];\chainin(0d) [join=by {->}];\chainin(0e) [join=by {->}];\chainin(0f) [join=by {->}];\chainin(0g) [join=by {->}];\chainin(0h) [join=by {->}];\chainin(0i) [join=by {->}];\chainin(0j) [join=by {->}];\chainin(0k) [join=by {->}];\chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1neginf);\chainin(1c) [join=by {->}];\chainin(1f) [join=by {->}];\chainin(1h) [join=by {->}];\chainin(1j) [join=by {->}];\chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(2neginf);\chainin(2h) [join=by {->}];\chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(3neginf);\chainin(3inf) [join=by {->}]; 
+      }
+
+    \end{tikzpicture}
+    
+        \begin{tikzpicture}[
+        start chain,
+        every node/.style={font=\small},
+        item/.style={rectangle,minimum height=7mm,minimum width=5mm,
+                     rounded corners=1mm,thick,draw=black},
+        label/.style={rectangle,minimum size=4mm}
+      ]
+      \matrix[row sep=-0.2mm, column sep=2mm]{
+        \nodelabel{3}; & \snode{3neginf}{-\infty}; & & & & & & & & & & & \snode{3inf}{+\infty}; \\ 
+        \nodelabel{2}; & \snode{2neginf}{-\infty}; & & & & & & & \snode{2g}{75}; & & & & \snode{2inf}{+\infty}; \\ 
+        \nodelabel{1}; & \snode{1neginf}{-\infty}; & & & \snode{1c}{18}; & & \snode{1e}{25}; & & \snode{1g}{75}; & & \snode{1i}{78}; & & \snode{1inf}{+\infty}; \\ 
+        \nodelabel{0}; & \snode{0neginf}{-\infty}; & \snode{0a}{ 7}; & \snode{0b}{ 8}; & \snode{0c}{18}; & \snode{0d}{23}; & \snode{0e}{25}; & \snode{0f}{47}; & \snode{0g}{75}; & \snode{0h}{77}; & \snode{0i}{78}; & \snode{0j}{95}; & \snode{0inf}{+\infty}; \\ 
+      };
+      {
+        [start chain] \chainin(0neginf);\chainin(0a) [join=by {->}];\chainin(0b) [join=by {->}];\chainin(0c) [join=by {->}];\chainin(0d) [join=by {->}];\chainin(0e) [join=by {->}];\chainin(0f) [join=by {->}];\chainin(0g) [join=by {->}];\chainin(0h) [join=by {->}];\chainin(0i) [join=by {->}];\chainin(0j) [join=by {->}];\chainin(0inf) [join=by {->}]; 
+        [start chain] \chainin(1neginf);\chainin(1c) [join=by {->}];\chainin(1e) [join=by {->}];\chainin(1g) [join=by {->}];\chainin(1i) [join=by {->}];\chainin(1inf) [join=by {->}]; 
+        [start chain] \chainin(2neginf);\chainin(2g) [join=by {->}];\chainin(2inf) [join=by {->}]; 
+        [start chain] \chainin(3neginf);\chainin(3inf) [join=by {->}]; 
+      }
+
+    \end{tikzpicture}
+
+  \caption{Remoção do elemento 71}
+  \label{fig:det_skiplist_rem}
+\end{figure}
+
+
+
+
+A seguir, é dado o algoritmo para a remoção. Ele é consideravelmente mais extenso que o de inserção, 
+porém, não é muito mais complicado.
+
+
+\begin{lstlisting}[caption=Algoritmo de remoção em TB 1-2-3 skip list, language=C]
+void skiplist_remove(SkipList *skiplist, int key) {
+    Cell *current, *previous, *next, *node;
+    int previous_key, last_above;
+
+    current = skiplist->header->down;
+    skiplist->bottom->key = key;
+    last_above = skiplist->header->key;
+
+    while (current != skiplist->bottom) {
+        while (key > current->key) {
+            previous = current;
+            current = current->right;
+        }
+        next = current->down;
+
+        if (current->key == next->right->key) {
+            if (current->key != last_above) {
+                node = current->right;
+                if ((node->key==node->down->right->key) || (next==skiplist->bottom)) {
+                    current->right = node->right;
+                    current->key = node->key;
+                    free(node);
+                }
+                else {
+                    current->key = node->down->key;
+                    node->down = node->down->right;
+                }
+            }
+            else {
+                if (previous->key <= previous->down->right->key) {
+                    if (next == skiplist->bottom)
+                        previous_key = previous->key;
+                    previous->right = current->right;
+                    previous->key = current->key;
+                    free(current);
+                    current = previous;
+                }
+                else {
+                    if (previous->key == previous->down->right->right->key)
+                        node = previous->down->right;
+                    else
+                        node = previous->down->right->right;
+                    previous->key = node->key;
+                    current->down = node->right;
+                }
+            }
+        }
+        last_above = current->key;
+        current = next;
+    }
+    current = skiplist->header->down;
+    while (current != skiplist->bottom) {
+        while (key > current->key)
+            current = current->right;
+        if (key == current->key)
+            current->key = previous_key;
+        current = current->down;
+    }
+
+    if (skiplist->header->down->right == skiplist->end) {
+        current = skiplist->header;
+        skiplist->header = current->down;
+        free(current);
+    }
+}
+\end{lstlisting}
+
+
+\subsection{Análise dos algoritmos}
+
+Apesar de algoritmos mais complicados, a análise dos algoritmos mais simples para \sl determinísticas
+do que para as probabilísticas. Isso pois os laços principais dos algoritmos são feitos percorrendo
+a altura, que é $\cO(\log n)$, e numa busca, não se dá mais do que três passos à direita.
+
+\subsubsection{Inicialização}
+
+Deve ser claro que a inicialização é $\cO(1)$.
+
+\subsubsection{Busca}
+
+Sabemos que a altura de uma TB 1-2-3 \sl é $\cO(\log n)$. Então, no pior caso, o laço principal faz
+$3 O(\log n)$ operações, pois, no máximo, são dados três passos à direita.
+
+\subsubsection{Inserção}
+
+O custo da inserção é dominado pelo custo da busca. Isso pois, dentro do laço principal, é fácil
+ver que cada condicional tem custo $\cO(1)$, e, pelo mesmo argumento usado na análise da busca, 
+o while interno faz 3 comparações no pior caso. Somando isso com o custo $\cO(1)$ da função 
+\verb|skiplist_grow|, temos que o custo total da inserção é $\cO(\log n)$.
+
+\subsubsection{Remoção}
+
+Como na inserção, podemos desconsiderar os custos dos condicionais no laço principal da remoção pois 
+não há laço ou chamada de procedimento, que não o \verb|free|, que tem custo $\cO(1)$. Assim, o
+laço principal da remoção é dominado pelo custo de busca.
+
+É claro que o \verb|while| da linha 52 tem custo igual ao de uma busca, a menos de uma constante
+multiplicativa. E o condicional da linha 60 é $\cO(1)$.
+
+Assim, o custo de remoção é $\cO(\log n) + \cO(\log n) + \cO(1) = \cO(\log n)$.
 
 %----------------------------------------------------------------------------------------
 \bibliography{biblio}{}
